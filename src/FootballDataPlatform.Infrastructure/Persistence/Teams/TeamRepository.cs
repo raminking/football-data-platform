@@ -20,5 +20,13 @@ public class TeamRepository(FootballDataDbContext context)
         context.Teams.Add(team);
         await context.SaveChangesAsync(cancellationToken);
     }
- 
+
+    public async Task<Team?> GetByIdAsync(
+        Guid id,
+        CancellationToken cancellationToken)
+    {
+        return await context.Teams.FirstOrDefaultAsync(
+            t => t.Id == id,
+            cancellationToken);
+    }
 }
