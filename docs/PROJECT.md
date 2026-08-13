@@ -12,23 +12,95 @@ The primary goal of this project is to become a portfolio project for Backend/Da
 
 - ASP.NET Core 8
 - PostgreSQL
-- Entity Framework Core
+- Entity Framework Core 8
+- MediatR
 - Vertical Slice Architecture
 - Docker
 - Swagger
 
-## Principles
+## Architecture
 
-- Clean Code
-- SOLID
-- KISS
-- YAGNI
-- Testable Code
+The project follows a Vertical Slice Architecture with clear separation between:
 
-## Project Status
+- API
+- Application
+- Domain
+- Infrastructure
+- Contracts
+- Tests
 
-Sprint 1 - Project Initialization
+### Project Responsibilities
 
-## Mentor
+#### API
 
-Project developed with guidance from ChatGPT acting as Tech Lead.
+Responsible for:
+
+- HTTP endpoints
+- Request and response handling
+- Mapping HTTP requests to application commands
+
+#### Application
+
+Responsible for:
+
+- Use cases
+- Commands and handlers
+- Application contracts
+- Repository abstractions
+- Application-level business flow
+
+The Application layer does not know about database implementation details.
+
+#### Domain
+
+Responsible for:
+
+- Domain entities
+- Domain rules
+- Domain validation
+- Core business concepts
+
+The Domain layer does not depend on Infrastructure or database technologies.
+
+#### Infrastructure
+
+Responsible for:
+
+- PostgreSQL
+- Entity Framework Core
+- Database context
+- Entity configurations
+- Repository implementations
+- Database migrations
+- Infrastructure dependency injection
+
+#### Contracts
+
+Contains contracts shared between API and other application boundaries where required.
+
+#### Tests
+
+Contains automated tests for the application and domain behavior.
+
+---
+
+## Create Team Flow
+
+The current Team creation flow is:
+
+```text
+HTTP Request
+    ↓
+CreateTeamEndpoint
+    ↓
+CreateTeamCommand
+    ↓
+CreateTeamHandler
+    ↓
+ITeamRepository
+    ↓
+TeamRepository
+    ↓
+FootballDataDbContext
+    ↓
+PostgreSQL
