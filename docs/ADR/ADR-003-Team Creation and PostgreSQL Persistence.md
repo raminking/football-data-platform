@@ -1,11 +1,3 @@
-
----
-
-### 5. `docs/ADR/ADR-003-team-module-and-persistence.md`
-
-Create this new file:
-
-```markdown
 # ADR-003: Team Creation Vertical Slice and PostgreSQL Persistence
 
 ## Status
@@ -20,12 +12,12 @@ Accepted
 
 The project needed its first complete business feature in order to validate the selected architecture and database strategy.
 
-The first feature selected was team creation.
+The first feature selected was Team creation.
 
 The feature required:
 
 - A domain entity
-- Business validation
+- Domain validation
 - An application use case
 - Persistence abstraction
 - Persistence implementation
@@ -39,22 +31,24 @@ The project also needed a clear separation between application logic and databas
 
 ## Decision
 
-We will implement the Team feature as a vertical slice.
+The Team feature will be implemented as a vertical slice.
 
-The feature will follow this flow:
+The feature follows this flow:
 
 ```text
 HTTP Request
     ↓
-API Endpoint
+CreateTeamEndpoint
     ↓
-MediatR Command
+CreateTeamCommand
     ↓
-Command Handler
+CreateTeamHandler
     ↓
 ITeamRepository
     ↓
 TeamRepository
+    ↓
+FootballDataDbContext
     ↓
 Entity Framework Core
     ↓

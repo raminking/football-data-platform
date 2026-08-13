@@ -37,3 +37,4 @@ Do not commit database passwords.
 dotnet build
 dotnet test
 dotnet ef database update
+

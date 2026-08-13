@@ -2,12 +2,14 @@
 
 ## Sprint 1
 
-### Day 1
+### Day 1 — Project Initialization
 
-- Repository Created
-- README Added
-- Initial Architecture Planning
-- Solution Structure Created
+- Repository created
+- README added
+- Initial architecture planning
+- Solution structure created
+- PostgreSQL selected
+- Vertical Slice Architecture selected
 
 Status:
 
@@ -15,45 +17,68 @@ Status:
 
 ---
 
-### Day 2
+### Day 2 — Team Creation Foundation
 
-- PostgreSQL configured
-- Entity Framework Core configured
-- FootballDataDbContext created
+#### Domain
+
 - Team domain entity created
-- Team repository abstraction created
-- Team repository implemented
-- TeamConfiguration created
-- Initial database migration created
-- Database created and migration applied
+- Team validation implemented
+- Team Id generated using Guid
+- Team name trimming implemented
+- Team country trimming implemented
+
+#### Application
+
 - MediatR configured
+- CreateTeamCommand created
+- CreateTeamHandler created
+- Result abstraction created
+- ITeamRepository abstraction created
 - Application dependency injection configured
+
+#### Infrastructure
+
+- Entity Framework Core configured
+- Npgsql configured
+- FootballDataDbContext created
+- TeamConfiguration created
+- TeamRepository implemented
 - Infrastructure dependency injection configured
-- Create Team command and handler implemented
-- Create Team endpoint implemented
-- Duplicate Team + Country validation implemented
-- Domain validation tests added
-- Create Team endpoint tested manually with curl
-- Database credentials moved to ASP.NET Core User Secrets
+- Unique Team + Country database constraint created
+- Initial migration created
 
-Status:
+#### Database
 
-✅ Completed
+- PostgreSQL database created
+- Initial migration applied successfully
+- Teams table created
+- Unique Team + Country index created
 
----
+#### API
 
-## Sprint 2
+- CreateTeamEndpoint created
+- POST `/teams` implemented
+- MediatR connected to the endpoint
+- Duplicate Team + Country validation exposed through the API
 
-### Planned
+#### Tests
 
-- Complete Teams Module
-- Add Team retrieval
-- Add Team update
-- Add Team deletion
-- Add integration tests
-- Players Module
-- Leagues Module
+- Team creation test added
+- Empty Team name validation test added
+- Empty Team country validation test added
+- `dotnet test` completed successfully
+- 3 tests passed
 
-Status:
+#### Manual API Verification
 
-⏳ Pending
+The following scenarios were tested:
+
+```text
+Arsenal + England
+→ Successfully created
+
+Arsenal + England
+→ Rejected because it already exists
+
+Arsenal + Spain
+→ Successfully created
