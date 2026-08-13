@@ -1,18 +1,39 @@
 # Football Data Platform
 
-A backend platform for collecting, storing and analyzing football data.
+## Architecture
 
-## Goals
+- Domain
+- Application
+- Infrastructure
+- API
+- Contracts
+- Tests
 
-- Collect football data automatically
-- Expose REST APIs
-- Store historical data
-- Practice modern backend architecture
+## Current Features
 
-## Tech Stack
-
-- ASP.NET Core 8
-- PostgreSQL
+- Create Team
+- PostgreSQL persistence
 - Entity Framework Core
-- Vertical Slice Architecture
-- Docker
+- MediatR
+- Domain validation
+- Unique Team + Country constraint
+
+## Database
+
+PostgreSQL + Entity Framework Core.
+
+Migrations are located in:
+
+src/FootballDataPlatform.Infrastructure/Migrations/
+
+## Local Development
+
+Connection strings are stored using ASP.NET Core User Secrets.
+
+Do not commit database passwords.
+
+## Commands
+
+dotnet build
+dotnet test
+dotnet ef database update
