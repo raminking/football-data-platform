@@ -6,4 +6,10 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Folder Include="League\" />
+    <Folder Include="Match\" />
+    <Folder Include="Player\" />
+  </ItemGroup>
+
 </Project>
