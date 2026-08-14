@@ -27,6 +27,7 @@ public async Task<Result<Guid>> Handle(CreateTeamCommand command, CancellationTo
     if(await repository.ExistsByNameAsync(
         command.Name,
         command.Country,
+        null,
         ct))
     {
         return Result<Guid>.Failure("exists in database");
