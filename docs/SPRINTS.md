@@ -1,84 +1,49 @@
 # Sprint History
 
-## Sprint 1
+---
 
-### Day 1 — Project Initialization
+# Sprint 1 — Project Foundation
 
-- Repository created
-- README added
-- Initial architecture planning
-- Solution structure created
-- PostgreSQL selected
-- Vertical Slice Architecture selected
-
-Status:
+Status
 
 ✅ Completed
 
+Completed
+
+- Created solution
+- Established project structure
+- Adopted Vertical Slice Architecture
+- Configured Dependency Injection
+- Configured PostgreSQL
+- Configured Entity Framework Core
+- Created initial migration
+
+Outcome
+
+A production-ready project foundation was established.
+
 ---
 
-### Day 2 — Team Creation Foundation
+# Sprint 2 — Teams Module
 
-#### Domain
+Status
 
-- Team domain entity created
-- Team validation implemented
-- Team Id generated using Guid
-- Team name trimming implemented
-- Team country trimming implemented
+🚧 In Progress
 
-#### Application
+Completed
 
-- MediatR configured
-- CreateTeamCommand created
-- CreateTeamHandler created
-- Result abstraction created
-- ITeamRepository abstraction created
-- Application dependency injection configured
+- Team Domain Entity
+- Team Repository
+- Create Team Command
+- Get Team Query
+- Create Team Endpoint
+- Get Team Endpoint
+- EF Configuration
+- Initial Migration
+- Unit Tests
 
-#### Infrastructure
+Next
 
-- Entity Framework Core configured
-- Npgsql configured
-- FootballDataDbContext created
-- TeamConfiguration created
-- TeamRepository implemented
-- Infrastructure dependency injection configured
-- Unique Team + Country database constraint created
-- Initial migration created
-
-#### Database
-
-- PostgreSQL database created
-- Initial migration applied successfully
-- Teams table created
-- Unique Team + Country index created
-
-#### API
-
-- CreateTeamEndpoint created
-- POST `/teams` implemented
-- MediatR connected to the endpoint
-- Duplicate Team + Country validation exposed through the API
-
-#### Tests
-
-- Team creation test added
-- Empty Team name validation test added
-- Empty Team country validation test added
-- `dotnet test` completed successfully
-- 3 tests passed
-
-#### Manual API Verification
-
-The following scenarios were tested:
-
-```text
-Arsenal + England
-→ Successfully created
-
-Arsenal + England
-→ Rejected because it already exists
-
-Arsenal + Spain
-→ Successfully created
+- Update Team
+- Delete Team
+- Integration Tests

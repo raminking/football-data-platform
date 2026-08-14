@@ -1,23 +1,106 @@
 # Lessons Learned
 
-This document records important technical lessons learned during development.
+---
 
-The purpose is not to document every line of code.
+## Architecture
 
-The purpose is to record decisions and concepts that are important enough to remember later.
+### Vertical Slice Architecture
+
+Instead of organizing code by technical layers, features are organized together.
+
+Example
+
+Teams
+
+- CreateTeam
+- GetTeam
+
+Each feature contains everything required for that use case.
+
+Benefits
+
+- Better scalability
+- Better maintainability
+- Easier feature development
+- Reduced coupling
 
 ---
 
-## 2026-08-12
+### Repository Pattern
 
-### Architecture — Vertical Slice Architecture
+The Application layer depends on abstractions rather than Entity Framework.
 
-Today I learned why Vertical Slice Architecture can be preferable to traditional layered architecture for feature-oriented applications.
+Example
 
-Traditional layered architecture commonly organizes code around technical concerns:
+Application
 
-```text
-Controllers
-Services
-Repositories
-Entities
+ITeamRepository
+
+Infrastructure
+
+TeamRepository
+
+Benefits
+
+- Loose coupling
+- Easier testing
+- Infrastructure can change without affecting business logic
+
+---
+
+## Entity Framework Core
+
+Learned
+
+- DbContext configuration
+- Entity Configuration
+- Fluent API
+- Migrations
+- Database Update
+
+---
+
+## PostgreSQL
+
+Selected because
+
+- Excellent performance
+- Open Source
+- Widely used in Europe
+- Excellent EF Core support
+
+---
+
+## Dependency Injection
+
+Application registers MediatR.
+
+Infrastructure registers repositories and DbContext.
+
+API composes the application.
+
+---
+
+## Minimal APIs
+
+Minimal APIs provide a lightweight way to expose endpoints.
+
+Benefits
+
+- Less boilerplate
+- Better readability
+- Works well with Vertical Slice Architecture
+
+---
+
+## Testing
+
+Current strategy
+
+- Domain Tests
+- Application Tests
+
+Future
+
+- Integration Tests
+- API Tests

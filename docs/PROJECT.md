@@ -2,53 +2,96 @@
 
 ## Vision
 
-Build a production-ready football data platform to demonstrate backend engineering, data engineering, database design, and system design skills.
+Football Data Platform is a production-oriented backend project built to demonstrate modern Backend Engineering and Data Engineering practices.
 
-## Goal
-
-The primary goal of this project is to become a portfolio project for Backend Engineer and Data Engineer positions in Europe.
-
-The project is being developed as a real-world backend system rather than as a collection of isolated tutorials.
+The project is designed as a portfolio to showcase software architecture, clean code, testing, database design, and API development skills.
 
 ---
 
-## Tech Stack
+## Primary Goal
 
-- .NET 8
-- ASP.NET Core 8
-- PostgreSQL
-- Entity Framework Core 8
-- Npgsql
-- MediatR
+Build a portfolio project capable of demonstrating the skills expected from a Backend Engineer or Data Engineer in Europe.
+
+This project is intentionally developed as if it were a real production system rather than a tutorial application.
+
+---
+
+## Current Status
+
+Current Sprint:
+
+**Sprint 2 – Teams Module**
+
+Completed features:
+
+- Team Domain
+- Create Team API
+- Get Team API
+- PostgreSQL Integration
+- Entity Framework Core
+- Repository Pattern
 - Vertical Slice Architecture
-- Docker
-- Swagger
+- Initial Database Migration
+- Unit Tests
+
+---
+
+## Technology Stack
+
+Backend
+
+- ASP.NET Core 8
+- C#
+- Minimal APIs
+- MediatR
+
+Database
+
+- PostgreSQL
+- Entity Framework Core
+- EF Core Migrations
+
+Architecture
+
+- Vertical Slice Architecture
+- Clean Architecture
+- Repository Pattern
+
+Testing
+
 - xUnit
 
+Future
+
+- Docker
+- Authentication
+- CI/CD
+- Logging
+- Caching
+- Background Jobs
+
 ---
 
-## Architecture
+## Development Principles
 
-The project uses Vertical Slice Architecture.
+This project follows:
 
-The main projects are:
+- Clean Code
+- SOLID
+- KISS
+- YAGNI
+- Separation of Concerns
+- Production Ready Code
 
-```text
-FootballDataPlatform
-│
-├── src
-│   ├── FootballDataPlatform.Api
-│   ├── FootballDataPlatform.Application
-│   ├── FootballDataPlatform.Contracts
-│   ├── FootballDataPlatform.Domain
-│   └── FootballDataPlatform.Infrastructure
-│
-├── tests
-│   └── FootballDataPlatform.Tests
-│
-└── docs
-    ├── ADR
-    ├── LESSONS_LEARNED.md
-    ├── PROJECT.md
-    ├── ROADMAP.md
-    └── SPRINTS.md
+---
+
+## Long-Term Goal
+
+When completed, this repository should demonstrate the ability to:
+
+- Design backend systems
+- Build REST APIs
+- Model domains
+- Work with relational databases
+- Explain architectural decisions
+- Pass Backend Engineer interviews
