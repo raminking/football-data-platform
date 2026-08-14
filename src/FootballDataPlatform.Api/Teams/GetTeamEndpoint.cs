@@ -1,5 +1,5 @@
 using Carter;
-using FootballDataPlatform.Application.Teams.GetTeam;
+using FootballDataPlatform.Application.Teams;
 using MediatR;
 
 namespace FootballDataPlatform.Api.Teams;

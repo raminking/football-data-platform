@@ -3,7 +3,7 @@ using FootballDataPlatform.Application.Common;
 using FootballDataPlatform.Domain.Teams;
 using MediatR;
 
-namespace FootballDataPlatform.Application.Teams.CreateTeam;
+namespace FootballDataPlatform.Application.Teams;
 
 
 public record CreateTeamCommand(string Name, string Country) : IRequest<Result<Guid>>;

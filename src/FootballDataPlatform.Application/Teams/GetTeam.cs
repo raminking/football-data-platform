@@ -2,7 +2,7 @@ using FootballDataPlatform.Application.Abstractions.Persistence;
 using FootballDataPlatform.Domain.Teams;
 using MediatR;
 
-namespace FootballDataPlatform.Application.Teams.GetTeam;
+namespace FootballDataPlatform.Application.Teams;
 
 public record GetTeamQuery(Guid Id) : IRequest<Team?>;
 

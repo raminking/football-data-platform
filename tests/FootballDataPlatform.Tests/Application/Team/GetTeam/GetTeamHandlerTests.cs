@@ -1,5 +1,5 @@
 using FootballDataPlatform.Application.Abstractions.Persistence;
-using FootballDataPlatform.Application.Teams.GetTeam;
+using FootballDataPlatform.Application.Teams;
 using Moq;
 
 

@@ -1,15 +1,15 @@
-using Carter;
 using FootballDataPlatform.Application.Teams;
+using Carter;
 using MediatR;
 
 namespace FootballDataPlatform.Api.Teams;
 
-public sealed class CreateTeamModule : ICarterModule
+public sealed class UpdateTeamModule : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapPost("/teams", async (
-                CreateTeamCommand command,
+        app.MapPost("/teams/update", async (
+                UpdateTeamCommand command,
                 ISender sender,
                 CancellationToken cancellationToken) =>
             {
@@ -20,9 +20,9 @@ public sealed class CreateTeamModule : ICarterModule
 
                 return Results.Ok(result);
             })
-            .WithName("CreateTeam")
+            .WithName("UpdateTeam")
             .WithTags("Teams")
-            .WithSummary("Create a new team")
+            .WithSummary("Update a  team")
             .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status400BadRequest);
     }
