@@ -1,79 +1,79 @@
 # Roadmap
 
-## Sprint 1 — Foundation ✅
+This document outlines the strategic development plan for the Football Data Platform.
 
-Completed
+---
+
+## Sprint 1 — Foundation ✅
+**Status:** Completed
 
 - Solution structure
-- Clean Architecture
-- Vertical Slice Architecture
-- PostgreSQL
-- Entity Framework Core
-- Dependency Injection
+- Clean Architecture + Vertical Slice Architecture
+- PostgreSQL & Entity Framework Core setup
+- Dependency Injection configuration
 - Initial Migration
+- CI/CD Pipeline basics
 
 ---
 
-## Sprint 2 — Teams Module 🚧
+## Sprint 2 — Teams Module ✅
+**Status:** Completed
 
-Current Sprint
+**Completed Features:**
+- [x] Team Entity (Rich Domain Model)
+- [x] Create Team (with uniqueness validation)
+- [x] Get Team (by ID)
+- [x] Update Team (with domain rules & duplicate checks)
+- [x] Delete Team (Hard Delete)
+- [x] Repository Pattern Implementation
+- [x] Unit Tests (Domain & Application layers)
+- [x] RESTful API Endpoints (Carter)
 
-Completed
-
-- Team Entity
-- Create Team
-- Get Team
-- Repository
-- Unit Tests
-
-Remaining
-
-- Update Team
-- Delete Team
-- Validation Improvements
-- Integration Tests
+**Deferred / Future Improvements:**
+- [ ] Optimistic Concurrency Control (RowVersion)
+- [ ] Integration Tests (End-to-End)
+- [ ] Soft Delete vs Hard Delete decision (ADR)
 
 ---
 
-## Sprint 3 — Players Module
+## Sprint 3 — Competitions Module 🚧
+**Status:** Planned / Next
 
-Planned
-
-- Player Entity
+- Competition Entity (League, Cup)
+- Season Entity
+- Relationship: Competition has many Seasons
+- Validation: Date ranges, unique names per season
 - CRUD APIs
-- Team Relationship
 
 ---
 
-## Sprint 4 — Competitions
+## Sprint 4 — Matches & Results
+**Status:** Planned
 
-Planned
-
-- League
-- Season
-- Match
-- Stadium
+- Match Entity
+- MatchResult Value Object
+- Scheduling logic
+- Home/Away Team relationships
+- Score tracking
 
 ---
 
 ## Sprint 5 — External Data Import
+**Status:** Planned
 
-Planned
-
-- Football API Integration
-- Background Jobs
-- Scheduling
-- Data Synchronization
+- Football Data API Integration (e.g., API-Football)
+- Background Jobs (Hangfire/Quartz)
+- Data Synchronization Strategies
+- Error Handling & Retries
 
 ---
 
-## Sprint 6 — Production Features
+## Sprint 6 — Production Readiness
+**Status:** Planned
 
-Planned
-
-- Authentication
-- Authorization
-- Logging
-- Docker
+- Authentication (JWT) & Authorization
+- Structured Logging (Serilog)
+- Docker Containerization
 - Health Checks
-- CI/CD
+- Advanced CI/CD (Security Scans, Performance Tests)
+
