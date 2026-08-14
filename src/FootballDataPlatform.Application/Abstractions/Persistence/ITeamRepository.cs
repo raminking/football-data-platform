@@ -20,4 +20,6 @@ public interface ITeamRepository
     Task <Team?> GetByIdAsync(
         Guid id,
         CancellationToken cancellationToken);
+    Task DeleteAsync(Team team,
+        CancellationToken cancellationToken);
 }

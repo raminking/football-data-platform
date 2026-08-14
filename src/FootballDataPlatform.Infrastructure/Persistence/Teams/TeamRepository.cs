@@ -36,4 +36,10 @@ public class TeamRepository(FootballDataDbContext context)
             t => t.Id == id,
             cancellationToken);
     }
+
+    public async Task DeleteAsync(Team team, CancellationToken cancellationToken)
+    {
+        context.Teams.Remove(team);
+        await context.SaveChangesAsync(cancellationToken);
+    }
 }
