@@ -7,7 +7,7 @@ public class Team
     public string Name { get; private set; }
     public string Country { get; private set; }
 
-    public Team(string name, string country)
+    public Team( string name, string country)
     {
         if (string.IsNullOrWhiteSpace(name))
             throw new ArgumentException("Team name is required.", nameof(name));
