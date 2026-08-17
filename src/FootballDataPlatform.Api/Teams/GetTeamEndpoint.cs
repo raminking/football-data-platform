@@ -1,5 +1,6 @@
 using Carter;
 using FootballDataPlatform.Application.Teams;
+using FootballDataPlatform.Contracts.Teams;
 using MediatR;
 
 namespace FootballDataPlatform.Api.Teams;
@@ -15,16 +16,24 @@ public sealed class GetTeamModule : ICarterModule
             {
                 var query = new GetTeamQuery(id);
 
-                var team = await sender.Send(query, cancellationToken);
+                var team = await sender.Send(
+                    query,
+                    cancellationToken);
 
-                return team is null
-                    ? Results.NotFound()
-                    : Results.Ok(team);
+                if (team is null)
+                    return Results.NotFound();
+
+                var response = new GetTeamResponse(
+                    team.Id,
+                    team.Name,
+                    team.Country);
+
+                return Results.Ok(response);
             })
             .WithName("GetTeam")
             .WithTags("Teams")
             .WithSummary("Get a team by its identifier")
-            .Produces(StatusCodes.Status200OK)
+            .Produces<GetTeamResponse>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status404NotFound);
     }
 }

@@ -1,9 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
-
+    
     <ItemGroup>
-      <ProjectReference Include="..\FootballDataPlatform.Infrastructure\FootballDataPlatform.Infrastructure.csproj" />
+        <ProjectReference Include="..\FootballDataPlatform.Infrastructure\FootballDataPlatform.Infrastructure.csproj" />
+        <ProjectReference Include="..\FootballDataPlatform.Contracts\FootballDataPlatform.Contracts.csproj" />
     </ItemGroup>
-
+    
     <ItemGroup>
       <PackageReference Include="Carter" Version="8.0.0" />
       <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.11">
