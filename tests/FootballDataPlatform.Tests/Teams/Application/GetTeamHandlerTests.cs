@@ -2,7 +2,7 @@ using FootballDataPlatform.Application.Abstractions.Persistence;
 using FootballDataPlatform.Application.Teams;
 using Moq;
 
-namespace FootballDataPlatform.Tests.Application.Team.GetTeam;
+namespace FootballDataPlatform.Tests.Teams.Application;
 
 public class GetTeamHandlerTests
 {

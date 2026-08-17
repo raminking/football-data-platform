@@ -24,15 +24,19 @@ public async Task<Result<Guid>> Handle(CreateTeamCommand command, CancellationTo
             Result<Guid>.Failure("Team country is required.");
         ;
     }
-    if(await repository.ExistsByNameAsync(
-        command.Name,
-        command.Country,
-        null,
-        ct))
+    var name = command.Name.Trim();
+    var country = command.Country.Trim();
+    
+    if (await repository.ExistsByNameAsync(
+            name,
+            country,
+            null,
+            ct))
     {
         return Result<Guid>.Failure("exists in database");
-
     }
+    
+   
     var team = new Team(
         command.Name,
         command.Country);

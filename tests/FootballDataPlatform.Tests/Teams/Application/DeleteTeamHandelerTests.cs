@@ -1,11 +1,10 @@
 using FootballDataPlatform.Application.Abstractions.Persistence;
 using FootballDataPlatform.Application.Teams;
 using Moq;
-using Xunit;
 // اضافه کردن alias برای رفع ابهام نام کلاس Team با namespace تست
 using TeamEntity = FootballDataPlatform.Domain.Teams.Team;
 
-namespace FootballDataPlatform.Tests.Application.Team.DeleteTeam;
+namespace FootballDataPlatform.Tests.Teams.Application;
 
 public class DeleteTeamHandlerTests
 {

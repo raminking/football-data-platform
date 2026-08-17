@@ -25,13 +25,16 @@ public sealed class CreateTeamModule : ICarterModule
                 if (!result.IsSuccess)
                     return Results.BadRequest(result.Error);
 
-                return Results.Ok(
-                    new CreateTeamResponse(result.Value));
+                var response = new CreateTeamResponse(result.Value);
+
+                return Results.Created(
+                    $"/teams/{result.Value}",
+                    response);
             })
             .WithName("CreateTeam")
             .WithTags("Teams")
             .WithSummary("Create a new team")
-            .Produces<CreateTeamResponse>(StatusCodes.Status200OK)
+            .Produces<CreateTeamResponse>(StatusCodes.Status201Created)
             .Produces(StatusCodes.Status400BadRequest);
     }
 }

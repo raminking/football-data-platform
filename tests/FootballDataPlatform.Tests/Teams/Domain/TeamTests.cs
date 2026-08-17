@@ -1,6 +1,6 @@
 using FootballDataPlatform.Domain.Teams;
 
-namespace FootballDataPlatform.Tests.Domain.Teams;
+namespace FootballDataPlatform.Tests.Teams.Domain;
 
 public class TeamTests
 {

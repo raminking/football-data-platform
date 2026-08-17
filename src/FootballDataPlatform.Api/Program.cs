@@ -26,3 +26,5 @@ app.MapCarter();
 // app.MapGetTeamEndpoint();
 
 app.Run();
+
+public partial class Program;

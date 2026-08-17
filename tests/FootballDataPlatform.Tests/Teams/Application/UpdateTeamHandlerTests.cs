@@ -4,7 +4,7 @@ using Moq;
 // اضافه کردن_alias_ برای رفع ابهام
 using TeamEntity = FootballDataPlatform.Domain.Teams.Team;
 
-namespace FootballDataPlatform.Tests.Application.Team.UpdateTeam;
+namespace FootballDataPlatform.Tests.Teams.Application;
 
 public class UpdateTeamHandlerTests
 {
