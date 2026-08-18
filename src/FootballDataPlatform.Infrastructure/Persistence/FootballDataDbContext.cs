@@ -1,4 +1,5 @@
 using FootballDataPlatform.Domain.Competitions;
+using FootballDataPlatform.Domain.Match;
 using FootballDataPlatform.Domain.Teams;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,6 +10,7 @@ public class FootballDataDbContext(DbContextOptions<FootballDataDbContext> optio
     public DbSet<Team> Teams => Set<Team>();
     public DbSet<Competition> Competitions => Set<Competition>();
     public DbSet<Season> Seasons => Set<Season>();
+    public DbSet<Match> Matches => Set<Match>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
