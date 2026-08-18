@@ -83,6 +83,36 @@ public class TeamsApiTests
     }
 
     [Fact]
+    public async Task CreateTeam_WithDuplicateNameAndCountry_ReturnsBadRequest()
+    {
+        // Arrange
+        await using var factory = new CustomWebApplicationFactory();
+        using var client = factory.CreateClient();
+
+        var request = new CreateTeamRequest(
+            "Sporting CP",
+            "Portugal");
+
+        var firstResponse = await client.PostAsJsonAsync(
+            "/teams",
+            request);
+
+        Assert.Equal(
+            HttpStatusCode.Created,
+            firstResponse.StatusCode);
+
+        // Act
+        var duplicateResponse = await client.PostAsJsonAsync(
+            "/teams",
+            request);
+
+        // Assert
+        Assert.Equal(
+            HttpStatusCode.BadRequest,
+            duplicateResponse.StatusCode);
+    }
+
+    [Fact]
     public async Task GetTeam_WithUnknownId_ReturnsNotFound()
     {
         // Arrange
