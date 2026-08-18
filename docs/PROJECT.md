@@ -4,7 +4,7 @@
 
 Football Data Platform is a production-oriented backend project built to demonstrate modern Backend Engineering and Data Engineering practices.
 
-The project is designed as a portfolio to showcase software architecture, clean code, testing, relational database design, domain modelling, and API development.
+The project is designed as a portfolio to showcase software architecture, clean code, testing, relational database design, domain modelling, API development, and external data integration.
 
 ---
 
@@ -20,26 +20,25 @@ This project is intentionally developed as if it were a real production system r
 
 Current Sprint:
 
-**Sprint 4 – Matches & Results**
+**Sprint 5 – External Data Import**
 
 Completed milestones:
 
 - **Sprint 2 – Teams Module**
 - **Sprint 3 – Competitions & Seasons**
+- **Sprint 4 – Matches & Results**
 
 Latest verified suite:
 
-**51 passed, 0 failed, 0 skipped**
+**59 passed, 0 failed, 0 skipped**
 
 Current focus:
 
-- Finalize the Match v1 domain model
-- Model Season → Match and Home/Away Team relationships
-- Implement match status, stage, scores and result consistency
-- CRUD/application operations
-- PostgreSQL persistence and migration
-- Carter API
-- Domain/application/integration tests
+- Select and document the first external football-data provider
+- Establish a provider-independent adapter boundary
+- Keep provider DTOs separate from internal domain models
+- Map external Team, Competition, Season and Match data into the internal model
+- Design validation, idempotency and error handling before background scheduling
 
 The current domain baseline is documented in `docs/DOMAIN_MODEL.md`.
 
@@ -89,15 +88,16 @@ Testing
 - xUnit
 - Testcontainers PostgreSQL integration tests
 
-Future
+Planned / Future
 
+- External football-data provider integration
+- Background Jobs
 - Docker
 - Authentication
 - CI/CD
-- Logging
+- Structured Logging
 - Caching
-- Background Jobs
-- External football-data synchronization
+- Observability
 
 ---
 
@@ -113,6 +113,7 @@ This project follows:
 - Production-oriented design
 - Explicit domain invariants
 - Testable application boundaries
+- Provider isolation
 
 The MVP intentionally avoids premature modelling of competition formats, groups, qualification rules and detailed match events.
 
@@ -129,5 +130,6 @@ When completed, this repository should demonstrate the ability to:
 - Apply Clean/Vertical Slice Architecture
 - Build meaningful automated tests
 - Explain architectural decisions
-- Integrate external data sources
+- Integrate external data sources safely
+- Design idempotent data ingestion
 - Explain engineering trade-offs during Backend Engineer interviews
