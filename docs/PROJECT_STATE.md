@@ -38,6 +38,7 @@ Teams module — CRUD API and automated testing foundation.
 - CreateTeam integration test for a valid request (`201 Created`).
 - CreateTeam integration tests for empty name and empty country (`400 Bad Request`).
 - CreateTeam integration test for duplicate Team + Country (`400 Bad Request`).
+- GetTeam integration test for an existing team (`200 OK`) and response data validation.
 - GetTeam integration test for an unknown ID (`404 Not Found`).
 
 ## Test Organization
@@ -57,7 +58,7 @@ Teams/
 
 Result: **15 passed, 0 failed, 0 skipped** was the last locally verified result recorded before the latest integration-test additions.
 
-The latest duplicate-create integration test has been committed to `main`, but its execution has not been verified from this session because the GitHub connector cannot run the local .NET test suite.
+The latest GetTeam integration test has been committed to `main`, but its execution has not been verified from this session because the GitHub connector cannot run the local .NET test suite.
 
 Integration tests require Docker Desktop to be running because Testcontainers starts PostgreSQL containers.
 
@@ -65,11 +66,13 @@ Integration tests require Docker Desktop to be running because Testcontainers st
 Continue expanding Teams integration/API test coverage from `main`.
 
 ## Next Exact Steps
-1. Add GetTeam integration test for an existing team.
-2. Add UpdateTeam integration tests.
-3. Add DeleteTeam integration tests.
-4. Run `dotnet test` locally and record the actual result here.
-5. Keep `main` as the source of truth; use short-lived branches only when needed.
+1. Add UpdateTeam integration test for a valid update.
+2. Add UpdateTeam integration test for an unknown ID.
+3. Add UpdateTeam integration tests for invalid input.
+4. Add DeleteTeam integration test for an existing team.
+5. Add DeleteTeam integration test for an unknown ID.
+6. Run `dotnet test` locally and record the actual result here.
+7. Keep `main` as the source of truth; use short-lived branches only when needed.
 
 ## Success Condition For Current Milestone
 Teams CRUD has meaningful API-level integration coverage against a real PostgreSQL container, with all tests passing.
