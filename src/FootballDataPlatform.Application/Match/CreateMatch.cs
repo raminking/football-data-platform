@@ -32,7 +32,7 @@ internal sealed class CreateMatchHandler(IMatchRepository repository)
 
         try
         {
-            var match = new Domain.Match.Match(
+            var match = new FootballDataPlatform.Domain.Match.Match(
                 command.SeasonId,
                 command.HomeTeamId,
                 command.AwayTeamId,
