@@ -35,11 +35,10 @@ Teams module — CRUD API and automated testing foundation.
 - Tests organized by feature under `tests/FootballDataPlatform.Tests/Teams`.
 - PostgreSQL Testcontainers integration-test infrastructure.
 - `CustomWebApplicationFactory` starts PostgreSQL, injects its connection string, and applies EF migrations.
-- CreateTeam integration test for a valid request (`201 Created`).
-- CreateTeam integration tests for empty name and empty country (`400 Bad Request`).
-- CreateTeam integration test for duplicate Team + Country (`400 Bad Request`).
-- GetTeam integration test for an existing team (`200 OK`) and response data validation.
-- GetTeam integration test for an unknown ID (`404 Not Found`).
+- CreateTeam integration coverage: valid request, empty name, empty country, duplicate Team + Country.
+- GetTeam integration coverage: existing team with response validation, unknown ID.
+- UpdateTeam integration coverage: valid update, unknown ID, empty name, empty country, duplicate Team + Country.
+- DeleteTeam integration coverage: existing team returns `204` and is no longer retrievable; unknown ID returns `404`.
 
 ## Test Organization
 ```text
@@ -58,28 +57,27 @@ Teams/
 
 Result: **15 passed, 0 failed, 0 skipped** was the last locally verified result recorded before the latest integration-test additions.
 
-The latest GetTeam integration test has been committed to `main`, but its execution has not been verified from this session because the GitHub connector cannot run the local .NET test suite.
+The complete Teams integration suite has now been committed to `main`, but it has **not** been executed from this session because the GitHub connector cannot run the local .NET test suite.
 
 Integration tests require Docker Desktop to be running because Testcontainers starts PostgreSQL containers.
 
 ## Current Task
-Continue expanding Teams integration/API test coverage from `main`.
+Teams CRUD implementation and integration coverage are complete from a code perspective. The remaining gate is local test verification before moving to the next module.
 
 ## Next Exact Steps
-1. Add UpdateTeam integration test for a valid update.
-2. Add UpdateTeam integration test for an unknown ID.
-3. Add UpdateTeam integration tests for invalid input.
-4. Add DeleteTeam integration test for an existing team.
-5. Add DeleteTeam integration test for an unknown ID.
-6. Run `dotnet test` locally and record the actual result here.
-7. Keep `main` as the source of truth; use short-lived branches only when needed.
+1. Run `dotnet test` locally with Docker Desktop running.
+2. If tests pass, record the exact result here and close the Teams milestone.
+3. If tests fail, fix the failures before proceeding.
+4. After Teams is verified, move to the next football-data domain module defined by the project roadmap.
+5. Keep `main` as the source of truth; use short-lived branches only when needed.
 
 ## Success Condition For Current Milestone
-Teams CRUD has meaningful API-level integration coverage against a real PostgreSQL container, with all tests passing.
+Teams CRUD has meaningful API-level integration coverage against a real PostgreSQL container, with all tests passing locally.
 
 ## Known Issues
 - Docker Desktop must be running for Testcontainers integration tests.
-- The latest integration-test additions have not yet been locally verified in this session.
+- The complete latest integration suite has not yet been locally verified in this session.
+- Update endpoint currently uses `POST /teams/update` rather than a conventional `PUT /teams/{id}` route. This is existing API design and should be reviewed before treating the Teams API as final.
 
 ## Important Decisions
 - Organize tests by business feature first (`Teams`), then by test type (`Application`, `Domain`, `Integration`).
