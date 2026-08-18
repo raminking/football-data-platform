@@ -3,62 +3,133 @@
 > Compact source of truth for continuing the project across sessions.
 
 ## Current Milestone
-**Sprint 4 — Matches & Results: starting Match domain design.**
+**Sprint 4 — Matches & Results: Match domain design completed; implementation next.**
 
 ## Completed Milestones
 ### Teams ✅
 - Teams CRUD, domain/application tests, Carter API, PostgreSQL persistence and Testcontainers integration coverage.
-- Verified: **27 passed, 0 failed, 0 skipped**.
+- Verified milestone: **27 passed, 0 failed, 0 skipped**.
 
-### Competitions ✅
+### Competitions & Seasons ✅
 - Competition CRUD, validation, repository, PostgreSQL persistence, Carter API, EF migration and integration coverage.
-- Verified as part of the current full suite.
-- EF migration designer issue was fixed and the migration is now correctly discovered/applied.
-
-### Seasons ✅
 - Season domain model with Competition relationship and date-range validation.
-- Create/Get/Update/Delete application operations.
-- Repository abstraction and PostgreSQL implementation.
-- EF configuration, foreign key and unique `(CompetitionId, Name)` constraint.
-- Carter CRUD API endpoints.
+- Season CRUD, repository, EF configuration, foreign key and unique `(CompetitionId, Name)` constraint.
 - PostgreSQL/Testcontainers integration coverage.
-- EF Core migration `20260818124212_AddSeasons` and model snapshot.
-- Verified: **51 passed, 0 failed, 0 skipped**.
+- Verified latest full suite before Match work: **51 passed, 0 failed, 0 skipped**.
 
 ## Current Verification
-Latest local full-suite result:
+Latest verified test result before Match implementation:
 - **51 passed**
 - **0 failed**
 - **0 skipped**
 - **51 total**
 
-Git working tree is clean and `main` is synchronized with `origin/main`.
+No Match implementation has been verified yet. The 51-test result remains the last known green baseline.
 
 ## Current Task — Matches
-Design and implement the Match slice as the next core football-data capability.
+The Match v1 domain design is now fixed and documented. Next is implementation.
 
-Initial Match scope:
-- Match domain entity.
-- Competition Season relationship.
-- Home Team / Away Team relationships.
-- Kickoff date/time.
-- Match status.
-- Score/result model.
-- Domain validation, including preventing the same team from being both home and away.
-- CRUD/application operations.
-- PostgreSQL persistence and migration.
-- Carter API.
-- Unit/domain tests and PostgreSQL integration tests.
+### Match v1
+```text
+Match
+├── Id
+├── SeasonId
+├── HomeTeamId
+├── AwayTeamId
+├── ScheduledAt
+├── Stage
+├── Status
+├── HomeScore
+├── AwayScore
+├── HalfTimeHomeScore
+├── HalfTimeAwayScore
+└── Result
+```
+
+### Relationships
+```text
+Competition
+└── Season
+    └── Match
+        ├── HomeTeam
+        └── AwayTeam
+```
+
+A Match belongs to a Season, not directly to Competition. HomeTeam and AwayTeam are two explicit relationships to Team.
+
+### Match Status
+- Scheduled
+- InProgress
+- Finished
+- Postponed
+- Cancelled
+- Abandoned
+
+### Match Stage
+Keep v1 intentionally simple:
+- League
+- Group Stage
+- League Phase
+- Playoff
+- Round of 16
+- Quarter Final
+- Semi Final
+- Final
+- Friendly
+
+### Result
+- HomeWin
+- Draw
+- AwayWin
+
+Result must be consistent with final scores. Prefer deriving it from scores where practical.
+
+## Domain Boundary
+The current MVP intentionally does not model:
+- Extra-time score
+- Penalty-shootout score
+- Goals/events
+- Cards
+- Substitutions
+- Possession
+- Shots
+- Corners
+- Lineups
+- Referee
+- Venue
+- Weather
+- Competition format/rules
+- Groups
+- Season participants
+- Promotion/relegation rules
+- Qualification rules
+
+These are deferred until the core model requires them.
+
+## Important Team Model Note
+The documented target domain model describes Team as:
+```text
+Team
+├── Id
+├── Name
+├── ShortName
+├── Code
+└── CountryId
+```
+The current repository implementation is not yet fully aligned with that target; this difference must be reviewed before Match persistence is finalized. Do not silently introduce a second incompatible Team model.
 
 ## Next Exact Steps
-1. Inspect existing Team, Competition and Season domain conventions before implementing Match.
-2. Define Match status and score/result model without over-engineering.
-3. Implement Match domain and application slices.
-4. Add EF configuration and migration.
-5. Add API endpoints.
-6. Add integration/domain tests.
-7. Run the complete suite and record the exact result.
-8. Update all strategic docs after the Match milestone.
+1. Inspect and reconcile the current Team implementation with the documented Team target model.
+2. Implement Match domain types and entity using the agreed v1 model.
+3. Add domain invariants, including different home/away teams and score/result consistency.
+4. Implement Match application commands/queries and CRUD operations.
+5. Add repository abstraction and PostgreSQL implementation.
+6. Configure EF relationships for Season, HomeTeam and AwayTeam.
+7. Create and verify the EF migration.
+8. Add Carter API endpoints.
+9. Add domain/application tests and PostgreSQL/Testcontainers integration tests.
+10. Run the complete suite and record the exact result.
+11. Update all strategic documentation after the Match implementation milestone.
 
 ## Success Condition
 The Match module is production-oriented, persisted in PostgreSQL, exposed through the API, covered by meaningful domain and integration tests, and the complete suite remains green.
@@ -67,6 +138,7 @@ The Match module is production-oriented, persisted in PostgreSQL, exposed throug
 - Teams update endpoint remains `POST /teams/update`; Competition and Season use conventional resource routes. Endpoint consistency can be refactored later.
 - Competition-to-Team relationships are intentionally deferred except where required by Match relationships.
 - Optimistic concurrency, soft delete and other advanced production concerns remain deferred until justified.
+- Team domain documentation and current implementation need reconciliation before Match is finalized.
 
 ## Important Decisions
 - Keep tests organized by business feature first, then test type.
@@ -75,6 +147,7 @@ The Match module is production-oriented, persisted in PostgreSQL, exposed throug
 - Keep `main` as the source of truth.
 - Update `docs/PROJECT_STATE.md` after every meaningful project step.
 - Keep strategic documentation synchronized across `PROJECT.md`, `ROADMAP.md`, `SPRINTS.md`, and `LESSONS_LEARNED.md` when milestones change.
+- Keep the Match model deliberately small; defer advanced competition and event modelling until justified.
 
 ## Session Protocol
 ```bash
