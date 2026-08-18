@@ -9,125 +9,109 @@ public class TeamsApiTests
     [Fact]
     public async Task CreateTeam_WithValidRequest_ReturnsCreated()
     {
-        // Arrange
         await using var factory = new CustomWebApplicationFactory();
         using var client = factory.CreateClient();
 
-        var request = new CreateTeamRequest(
-            "Sporting CP",
-            "Portugal");
+        var request = new CreateTeamRequest("Sporting CP", "Portugal");
 
-        // Act
-        var response = await client.PostAsJsonAsync(
-            "/teams",
-            request);
+        var response = await client.PostAsJsonAsync("/teams", request);
 
-        // Assert
-        Assert.Equal(
-            HttpStatusCode.Created,
-            response.StatusCode);
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
-        var result = await response.Content
-            .ReadFromJsonAsync<CreateTeamResponse>();
+        var result = await response.Content.ReadFromJsonAsync<CreateTeamResponse>();
 
         Assert.NotNull(result);
         Assert.NotEqual(Guid.Empty, result.Id);
-
-        Assert.Equal(
-            $"/teams/{result.Id}",
-            response.Headers.Location?.OriginalString);
+        Assert.Equal($"/teams/{result.Id}", response.Headers.Location?.OriginalString);
     }
 
     [Fact]
     public async Task CreateTeam_WithEmptyName_ReturnsBadRequest()
     {
-        // Arrange
         await using var factory = new CustomWebApplicationFactory();
         using var client = factory.CreateClient();
 
-        var request = new CreateTeamRequest(
-            string.Empty,
-            "Portugal");
+        var request = new CreateTeamRequest(string.Empty, "Portugal");
 
-        // Act
-        var response = await client.PostAsJsonAsync(
-            "/teams",
-            request);
+        var response = await client.PostAsJsonAsync("/teams", request);
 
-        // Assert
-        Assert.Equal(
-            HttpStatusCode.BadRequest,
-            response.StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
     [Fact]
     public async Task CreateTeam_WithEmptyCountry_ReturnsBadRequest()
     {
-        // Arrange
         await using var factory = new CustomWebApplicationFactory();
         using var client = factory.CreateClient();
 
-        var request = new CreateTeamRequest(
-            "Sporting CP",
-            string.Empty);
+        var request = new CreateTeamRequest("Sporting CP", string.Empty);
 
-        // Act
-        var response = await client.PostAsJsonAsync(
-            "/teams",
-            request);
+        var response = await client.PostAsJsonAsync("/teams", request);
 
-        // Assert
-        Assert.Equal(
-            HttpStatusCode.BadRequest,
-            response.StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
     [Fact]
     public async Task CreateTeam_WithDuplicateNameAndCountry_ReturnsBadRequest()
     {
+        await using var factory = new CustomWebApplicationFactory();
+        using var client = factory.CreateClient();
+
+        var request = new CreateTeamRequest("Sporting CP", "Portugal");
+
+        var firstResponse = await client.PostAsJsonAsync("/teams", request);
+        Assert.Equal(HttpStatusCode.Created, firstResponse.StatusCode);
+
+        var duplicateResponse = await client.PostAsJsonAsync("/teams", request);
+
+        Assert.Equal(HttpStatusCode.BadRequest, duplicateResponse.StatusCode);
+    }
+
+    [Fact]
+    public async Task GetTeam_WithExistingId_ReturnsTeam()
+    {
         // Arrange
         await using var factory = new CustomWebApplicationFactory();
         using var client = factory.CreateClient();
 
-        var request = new CreateTeamRequest(
-            "Sporting CP",
-            "Portugal");
+        var createRequest = new CreateTeamRequest("Benfica", "Portugal");
 
-        var firstResponse = await client.PostAsJsonAsync(
+        var createResponse = await client.PostAsJsonAsync(
             "/teams",
-            request);
+            createRequest);
 
-        Assert.Equal(
-            HttpStatusCode.Created,
-            firstResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.Created, createResponse.StatusCode);
+
+        var createdTeam = await createResponse.Content
+            .ReadFromJsonAsync<CreateTeamResponse>();
+
+        Assert.NotNull(createdTeam);
 
         // Act
-        var duplicateResponse = await client.PostAsJsonAsync(
-            "/teams",
-            request);
+        var response = await client.GetAsync($"/teams/{createdTeam.Id}");
 
         // Assert
-        Assert.Equal(
-            HttpStatusCode.BadRequest,
-            duplicateResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var result = await response.Content
+            .ReadFromJsonAsync<GetTeamResponse>();
+
+        Assert.NotNull(result);
+        Assert.Equal(createdTeam.Id, result.Id);
+        Assert.Equal(createRequest.Name, result.Name);
+        Assert.Equal(createRequest.Country, result.Country);
     }
 
     [Fact]
     public async Task GetTeam_WithUnknownId_ReturnsNotFound()
     {
-        // Arrange
         await using var factory = new CustomWebApplicationFactory();
-
         using var client = factory.CreateClient();
 
         var id = Guid.NewGuid();
 
-        // Act
         var response = await client.GetAsync($"/teams/{id}");
 
-        // Assert
-        Assert.Equal(
-            HttpStatusCode.NotFound,
-            response.StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 }
