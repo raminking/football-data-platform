@@ -47,7 +47,7 @@ public sealed class MatchEndpoints : ICarterModule
         }).WithTags("Matches").Produces(StatusCodes.Status204NoContent).Produces(StatusCodes.Status404NotFound);
     }
 
-    private static MatchResponse ToResponse(Domain.Match.Match match) =>
+    private static MatchResponse ToResponse(FootballDataPlatform.Domain.Match.Match match) =>
         new(match.Id, match.SeasonId, match.HomeTeamId, match.AwayTeamId,
             match.ScheduledAt, match.Stage, match.Status,
             match.HomeScore, match.AwayScore,
