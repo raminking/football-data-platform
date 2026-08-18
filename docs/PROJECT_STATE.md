@@ -37,6 +37,7 @@ Teams module — CRUD API and automated testing foundation.
 - `CustomWebApplicationFactory` starts PostgreSQL, injects its connection string, and applies EF migrations.
 - CreateTeam integration test for a valid request (`201 Created`).
 - CreateTeam integration tests for empty name and empty country (`400 Bad Request`).
+- CreateTeam integration test for duplicate Team + Country (`400 Bad Request`).
 - GetTeam integration test for an unknown ID (`404 Not Found`).
 
 ## Test Organization
@@ -56,7 +57,7 @@ Teams/
 
 Result: **15 passed, 0 failed, 0 skipped** was the last locally verified result recorded before the latest integration-test additions.
 
-The latest additions have been committed to `main`, but their execution has not been verified from this session because the GitHub connector cannot run the local .NET test suite.
+The latest duplicate-create integration test has been committed to `main`, but its execution has not been verified from this session because the GitHub connector cannot run the local .NET test suite.
 
 Integration tests require Docker Desktop to be running because Testcontainers starts PostgreSQL containers.
 
@@ -64,12 +65,11 @@ Integration tests require Docker Desktop to be running because Testcontainers st
 Continue expanding Teams integration/API test coverage from `main`.
 
 ## Next Exact Steps
-1. Add CreateTeam integration test for duplicate Team + Country.
-2. Add GetTeam integration test for an existing team.
-3. Add UpdateTeam integration tests.
-4. Add DeleteTeam integration tests.
-5. Run `dotnet test` locally and record the actual result here.
-6. Keep `main` as the source of truth; use short-lived branches only when needed.
+1. Add GetTeam integration test for an existing team.
+2. Add UpdateTeam integration tests.
+3. Add DeleteTeam integration tests.
+4. Run `dotnet test` locally and record the actual result here.
+5. Keep `main` as the source of truth; use short-lived branches only when needed.
 
 ## Success Condition For Current Milestone
 Teams CRUD has meaningful API-level integration coverage against a real PostgreSQL container, with all tests passing.
