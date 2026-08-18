@@ -6,16 +6,16 @@ This document defines the current MVP domain model and its intentional boundarie
 
 A `Team` represents a football club or national team.
 
+The current MVP intentionally keeps Team simple:
+
 ```text
 Team
 ├── Id
 ├── Name
-├── ShortName
-├── Code
-└── CountryId
+└── Country
 ```
 
-The domain deliberately does not distinguish Club vs National Team yet. That distinction can be introduced later if required.
+We deliberately do not distinguish Club vs National Team yet. We also do not introduce `ShortName`, `Code`, or a separate `Country` entity until the domain actually requires them.
 
 ## 2. Competition
 
@@ -79,8 +79,8 @@ Match
 Competition
 └── Season
     └── Match
-        ├── HomeTeam
-        └── AwayTeam
+        ├── HomeTeam → Team
+        └── AwayTeam → Team
 ```
 
 A Match belongs to a Season, not directly to Competition. The Season identifies the competition edition in which the match takes place.
