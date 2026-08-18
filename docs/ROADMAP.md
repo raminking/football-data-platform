@@ -66,24 +66,55 @@ This document outlines the strategic development plan for the Football Data Plat
 ## Sprint 4 — Matches & Results 🚧
 **Status:** In Progress
 
-### Initial Scope
-- Match Entity
-- Competition Season relationship
-- Home/Away Team relationships
-- Kickoff date/time
-- Match Status
-- MatchResult / Score model
-- Scheduling and domain validation
-- CRUD APIs
-- Unit/domain and PostgreSQL integration tests
+### Domain Baseline
+- [x] Define Match v1 model
+- [x] Define Season → Match relationship
+- [x] Define HomeTeam/AwayTeam relationships
+- [x] Define Match Status lifecycle
+- [x] Define Match Stage boundary
+- [x] Define half-time and full-time scores
+- [x] Define Result semantics and score consistency rule
+- [x] Document intentional MVP boundaries
 
-### Current Order
-1. Match domain model
-2. Match result/status model
-3. Application operations
-4. PostgreSQL persistence
-5. API endpoints
-6. Integration test coverage
+### Implementation Scope
+- [ ] Match domain entity and value/enumeration types
+- [ ] Domain invariants and validation
+- [ ] Application commands/queries and CRUD operations
+- [ ] Repository abstraction and implementation
+- [ ] EF Core configuration with Season and two Team foreign keys
+- [ ] PostgreSQL migration
+- [ ] Carter API endpoints
+- [ ] Domain/Application tests
+- [ ] PostgreSQL/Testcontainers integration tests
+- [ ] Full suite verification
+- [ ] Strategic documentation update after implementation milestone
+
+### Match v1 Model
+
+```text
+Match
+├── Id
+├── SeasonId
+├── HomeTeamId
+├── AwayTeamId
+├── ScheduledAt
+├── Stage
+├── Status
+├── HomeScore
+├── AwayScore
+├── HalfTimeHomeScore
+├── HalfTimeAwayScore
+└── Result
+```
+
+### Intentionally Deferred
+
+- Extra-time and penalty-shootout score modelling
+- Goals, cards, substitutions and other match events
+- Lineups, referee, venue and weather
+- Competition format/rules subsystem
+- Groups and season participants
+- Promotion/relegation and qualification rules
 
 ---
 
