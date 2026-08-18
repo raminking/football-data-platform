@@ -8,6 +8,7 @@ public class FootballDataDbContext(DbContextOptions<FootballDataDbContext> optio
 {
     public DbSet<Team> Teams => Set<Team>();
     public DbSet<Competition> Competitions => Set<Competition>();
+    public DbSet<Season> Seasons => Set<Season>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
