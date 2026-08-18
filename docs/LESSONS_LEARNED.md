@@ -6,16 +6,18 @@
 
 ### Vertical Slice Architecture
 
-Instead of organizing code by technical layers, features are organized together.
+Instead of organizing code only by technical layers, features are organized around use cases.
 
-Example
+Example:
 
 Teams
 
 - CreateTeam
 - GetTeam
+- UpdateTeam
+- DeleteTeam
 
-Each feature contains everything required for that use case.
+The same approach will be used for Competitions and later football-domain modules.
 
 Benefits
 
@@ -28,17 +30,19 @@ Benefits
 
 ### Repository Pattern
 
-The Application layer depends on abstractions rather than Entity Framework.
+The Application layer depends on abstractions rather than Entity Framework directly.
 
-Example
+Example:
 
 Application
 
-ITeamRepository
+`ITeamRepository`
 
 Infrastructure
 
-TeamRepository
+`TeamRepository`
+
+The Competition module will follow the same boundary.
 
 Benefits
 
@@ -57,6 +61,7 @@ Learned
 - Fluent API
 - Migrations
 - Database Update
+- PostgreSQL integration testing with Testcontainers
 
 ---
 
@@ -81,15 +86,9 @@ API composes the application.
 
 ---
 
-## Minimal APIs
+## Minimal APIs / Carter
 
-Minimal APIs provide a lightweight way to expose endpoints.
-
-Benefits
-
-- Less boilerplate
-- Better readability
-- Works well with Vertical Slice Architecture
+Carter provides a lightweight endpoint model that fits the project's Vertical Slice Architecture.
 
 ---
 
@@ -99,8 +98,25 @@ Current strategy
 
 - Domain Tests
 - Application Tests
+- API integration tests
+- PostgreSQL integration tests using Testcontainers
 
-Future
+Teams milestone result:
 
-- Integration Tests
-- API Tests
+**27 passed, 0 failed, 0 skipped**
+
+The same testing standard will be applied to Competitions.
+
+---
+
+## Project Documentation
+
+`docs/PROJECT_STATE.md` is the operational source of truth for continuing the project across sessions.
+
+Strategic status is maintained in:
+
+- `PROJECT.md`
+- `ROADMAP.md`
+- `SPRINTS.md`
+
+Architecture decisions are recorded under `docs/ADR/`.
