@@ -4,17 +4,17 @@ using MediatR;
 
 namespace FootballDataPlatform.Application.Competitions;
 
-public record DeleteCompetitionCommand(Guid Id) : IRequest<Result>;
+public record DeleteCompetitionCommand(Guid Id) : IRequest<Result<Guid>>;
 
 internal sealed class DeleteCompetitionHandler(ICompetitionRepository repository)
-    : IRequestHandler<DeleteCompetitionCommand, Result>
+    : IRequestHandler<DeleteCompetitionCommand, Result<Guid>>
 {
-    public async Task<Result> Handle(DeleteCompetitionCommand command, CancellationToken ct)
+    public async Task<Result<Guid>> Handle(DeleteCompetitionCommand command, CancellationToken ct)
     {
         var competition = await repository.GetByIdAsync(command.Id, ct);
-        if (competition is null) return Result.Failure("Competition not found.");
+        if (competition is null) return Result<Guid>.Failure("Competition not found.");
 
         await repository.DeleteAsync(competition, ct);
-        return Result.Success();
+        return Result<Guid>.Success(command.Id);
     }
 }
