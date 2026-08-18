@@ -24,34 +24,74 @@ A production-ready project foundation was established.
 
 ---
 
-## Sprint 2: Teams Module (Completed)
+## Sprint 2: Teams Module
+
+**Status: ✅ Completed and locally verified**
 
 **Goal:** Implement full CRUD operations for the Teams aggregate.
 
 ### Completed Stories
-- [x] **Create Team:** As a user, I can register a new football team with name and country.
-- [x] **Get Team:** As a user, I can retrieve details of a specific team by ID.
-- [x] **Update Team:** As a user, I can update a team's details (enforcing uniqueness and domain rules).
-- [x] **Delete Team:** As a user, I can remove a team from the system.
+- [x] **Create Team:** Register a new football team with name and country.
+- [x] **Get Team:** Retrieve details of a specific team by ID.
+- [x] **Update Team:** Update team details with uniqueness and domain rules.
+- [x] **Delete Team:** Remove a team from the system.
 
 ### Technical Implementation
-- **Architecture:** Vertical Slice Architecture with Clean Architecture principles.
-- **Pattern:** CQRS with MediatR.
-- **Domain:** Rich Domain Model (encapsulated logic in `Team` entity).
-- **Validation:** Business rules enforced in Domain layer; Uniqueness checked in Application layer.
-- **API:** RESTful endpoints using Carter (`POST`, `GET`, `PUT`, `DELETE`).
-- **Testing:**
-    - Unit Tests for Domain logic (validations).
-    - Unit Tests for Application Handlers (mocking repository).
-    - *Pending: Integration Tests.*
+- Vertical Slice Architecture with Clean Architecture principles.
+- CQRS with MediatR.
+- Rich Domain Model.
+- Repository abstraction in Application and implementation in Infrastructure.
+- Carter API endpoints.
+- PostgreSQL persistence with EF Core.
+- Testcontainers PostgreSQL integration tests.
 
-### Key Decisions & Learnings
-- Chose **Rich Domain Model** over Anemic to prevent invalid states.
-- Implemented **Uniqueness Check** in Application layer to avoid database constraint exceptions.
-- Used **Carter** for lightweight endpoint definition.
-- *Lesson:* Handling naming conflicts in tests (Namespace vs Entity class) required using type aliases.
+### Verification
+- **27 passed, 0 failed, 0 skipped**
 
-### Missing / Future Improvements
-- [ ] **Concurrency Control:** Add RowVersion/Timestamp to handle concurrent updates (Optimistic Concurrency).
-- [ ] **Integration Tests:** End-to-end tests using TestContainers or in-memory database.
-- [ ] **Soft Delete:** Consider implementing soft delete instead of hard delete for audit trails (requires ADR).
+### Deferred / Future Improvements
+- [ ] Optimistic Concurrency Control.
+- [ ] Soft Delete vs Hard Delete ADR.
+- [ ] Review update endpoint route consistency.
+
+---
+
+## Sprint 3: Competitions Module
+
+**Status: 🚧 In Progress**
+
+**Goal:** Build the competition and season domain required for the football platform.
+
+### Planned Stories
+- [ ] **Competition Entity:** Support league and cup competitions.
+- [ ] **Create Competition:** Register a competition with validated identity fields.
+- [ ] **Get Competition:** Retrieve a competition by ID.
+- [ ] **Update Competition:** Update competition details while enforcing uniqueness/domain rules.
+- [ ] **Delete Competition:** Remove a competition according to domain rules.
+- [ ] **Season Entity:** Model competition seasons.
+- [ ] **Competition → Seasons:** Establish the relationship after both aggregates are stable.
+- [ ] **Testing:** Domain, Application, API, and PostgreSQL integration coverage.
+
+### Implementation Order
+1. Competition domain
+2. Competition CRUD
+3. Season domain
+4. Competition/Season relationship
+5. Integration verification
+
+---
+
+## Sprint 4: Matches & Results
+
+**Status: Planned**
+
+---
+
+## Sprint 5: External Data Import
+
+**Status: Planned**
+
+---
+
+## Sprint 6: Production Readiness
+
+**Status: Planned**
