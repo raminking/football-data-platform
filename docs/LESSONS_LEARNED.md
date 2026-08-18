@@ -17,7 +17,7 @@ Teams
 - UpdateTeam
 - DeleteTeam
 
-The same approach will be used for Competitions and later football-domain modules.
+The same approach is used for Competitions, Seasons and later football-domain modules such as Matches.
 
 Benefits
 
@@ -32,7 +32,7 @@ Benefits
 
 The Application layer depends on abstractions rather than Entity Framework directly.
 
-Example:
+Example
 
 Application
 
@@ -42,13 +42,73 @@ Infrastructure
 
 `TeamRepository`
 
-The Competition module will follow the same boundary.
+The same boundary is used for Competition, Season and Match persistence.
 
 Benefits
 
 - Loose coupling
 - Easier testing
 - Infrastructure can change without affecting business logic
+
+---
+
+## Domain Modelling
+
+### Competition vs Season
+
+A Competition represents the competition itself, while a Season represents a specific edition.
+
+```text
+Competition
+└── Season
+```
+
+This avoids putting year-specific information on Competition and allows the same competition to change its participating-team count or format between seasons.
+
+### Match Belongs to Season
+
+A Match belongs to a specific Season rather than directly to Competition.
+
+```text
+Competition
+└── Season
+    └── Match
+        ├── HomeTeam
+        └── AwayTeam
+```
+
+This allows a team to participate in matches across multiple competitions without coupling Match directly to Competition.
+
+### Match MVP Boundary
+
+The first Match model intentionally contains only the information needed for a useful football-data foundation:
+
+- fixture identity
+- season
+- home/away teams
+- scheduled time
+- stage
+- lifecycle status
+- half-time and full-time scores
+- result
+
+Detailed match events and competition rules are deliberately postponed to avoid premature complexity.
+
+### Result Consistency
+
+`Result` is not an independent arbitrary fact. It must agree with the final scores.
+
+For example:
+
+```text
+3 - 1 → HomeWin
+1 - 1 → Draw
+0 - 2 → AwayWin
+```
+
+An inconsistent state such as `3 - 1 → Draw` must be rejected by the domain/application model.
+
+Where practical, Result should be derived from the final scores.
 
 ---
 
@@ -62,6 +122,7 @@ Learned
 - Migrations
 - Database Update
 - PostgreSQL integration testing with Testcontainers
+- Multiple foreign keys from Match to the same Team entity require explicit relationship configuration
 
 ---
 
@@ -101,17 +162,21 @@ Current strategy
 - API integration tests
 - PostgreSQL integration tests using Testcontainers
 
-Teams milestone result:
+Latest verified milestone result:
 
-**27 passed, 0 failed, 0 skipped**
+**51 passed, 0 failed, 0 skipped**
 
-The same testing standard will be applied to Competitions.
+The same verification standard is required for Match before the milestone can be considered complete.
 
 ---
 
 ## Project Documentation
 
 `docs/PROJECT_STATE.md` is the operational source of truth for continuing the project across sessions.
+
+The current domain baseline is maintained in:
+
+- `docs/DOMAIN_MODEL.md`
 
 Strategic status is maintained in:
 
