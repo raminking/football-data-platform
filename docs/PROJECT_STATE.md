@@ -3,70 +3,70 @@
 > Compact source of truth for continuing the project across sessions.
 
 ## Current Milestone
-Competition module — migration/test failure being fixed.
+**Sprint 4 — Matches & Results: starting Match domain design.**
 
-## Previous Milestone — Teams
-**Completed and locally verified:** `27 passed, 0 failed, 0 skipped`.
+## Completed Milestones
+### Teams ✅
+- Teams CRUD, domain/application tests, Carter API, PostgreSQL persistence and Testcontainers integration coverage.
+- Verified: **27 passed, 0 failed, 0 skipped**.
 
-Teams CRUD, unit tests, domain tests, and PostgreSQL Testcontainers integration coverage are complete.
+### Competitions ✅
+- Competition CRUD, validation, repository, PostgreSQL persistence, Carter API, EF migration and integration coverage.
+- Verified as part of the current full suite.
+- EF migration designer issue was fixed and the migration is now correctly discovered/applied.
 
-## Competition Module
-Implemented on `main`:
-- Competition domain entity with Name, Country and Code.
-- Domain validation and code normalization.
+### Seasons ✅
+- Season domain model with Competition relationship and date-range validation.
 - Create/Get/Update/Delete application operations.
-- Competition repository abstraction and PostgreSQL implementation.
-- EF Core configuration and unique identity constraint on Name + Country + Code.
-- API contracts.
-- Carter CRUD endpoints.
-- EF Core migration and model snapshot.
-- Competition domain tests.
-- PostgreSQL API integration tests covering create, duplicate/validation, get, update, and delete.
+- Repository abstraction and PostgreSQL implementation.
+- EF configuration, foreign key and unique `(CompetitionId, Name)` constraint.
+- Carter CRUD API endpoints.
+- PostgreSQL/Testcontainers integration coverage.
+- EF Core migration `20260818124212_AddSeasons` and model snapshot.
+- Verified: **51 passed, 0 failed, 0 skipped**.
 
-### API
-- `POST /competitions`
-- `GET /competitions/{id}`
-- `PUT /competitions/{id}`
-- `DELETE /competitions/{id}`
-
-## Latest Verification
-Local `dotnet test` result:
-- **33 passed**
-- **8 failed**
+## Current Verification
+Latest local full-suite result:
+- **51 passed**
+- **0 failed**
 - **0 skipped**
-- **41 total**
+- **51 total**
 
-### Failure Analysis
-The primary failure is:
-`42P01: relation "Competitions" does not exist`
+Git working tree is clean and `main` is synchronized with `origin/main`.
 
-The Competition migration file existed, but its generated EF Core migration designer metadata was missing. As a result, EF Core migration discovery did not correctly include/apply `AddCompetitions` to the Testcontainers database.
+## Current Task — Matches
+Design and implement the Match slice as the next core football-data capability.
 
-A migration designer file has now been added:
-`20260818113000_AddCompetitions.Designer.cs`
-
-The delete integration test also showed JSON parsing of a non-JSON error response; this is a downstream symptom of the missing `Competitions` table, not the root cause.
-
-## Current Task
-Re-run the complete test suite after the migration-designer fix and address any remaining failures.
+Initial Match scope:
+- Match domain entity.
+- Competition Season relationship.
+- Home Team / Away Team relationships.
+- Kickoff date/time.
+- Match status.
+- Score/result model.
+- Domain validation, including preventing the same team from being both home and away.
+- CRUD/application operations.
+- PostgreSQL persistence and migration.
+- Carter API.
+- Unit/domain tests and PostgreSQL integration tests.
 
 ## Next Exact Steps
-1. Run `dotnet test` locally with Docker Desktop running.
-2. If migration failures remain, inspect EF migration discovery/history and fix them.
-3. If API behavior failures remain after the database is available, fix those independently.
-4. Record the exact passing test count here.
-5. If green, close Competition milestone.
-6. Move immediately to Season and model Competition → Seasons.
-7. Update all relevant docs after the Season milestone.
+1. Inspect existing Team, Competition and Season domain conventions before implementing Match.
+2. Define Match status and score/result model without over-engineering.
+3. Implement Match domain and application slices.
+4. Add EF configuration and migration.
+5. Add API endpoints.
+6. Add integration/domain tests.
+7. Run the complete suite and record the exact result.
+8. Update all strategic docs after the Match milestone.
 
 ## Success Condition
-Competition CRUD is implemented, persisted in PostgreSQL, exposed through the API, and covered by domain and integration tests with the complete suite passing locally.
+The Match module is production-oriented, persisted in PostgreSQL, exposed through the API, covered by meaningful domain and integration tests, and the complete suite remains green.
 
 ## Known Issues / Decisions To Review
-- Teams update endpoint remains `POST /teams/update`; Competition uses conventional `PUT /competitions/{id}`. API consistency can be refactored later.
-- Competition-to-Team relationships are intentionally deferred.
-- Competition code is currently part of uniqueness identity together with Name and Country.
-- The Competition migration designer was missing and has been added; local verification is still required.
+- Teams update endpoint remains `POST /teams/update`; Competition and Season use conventional resource routes. Endpoint consistency can be refactored later.
+- Competition-to-Team relationships are intentionally deferred except where required by Match relationships.
+- Optimistic concurrency, soft delete and other advanced production concerns remain deferred until justified.
 
 ## Important Decisions
 - Keep tests organized by business feature first, then test type.
