@@ -3,7 +3,7 @@
 > Compact source of truth for continuing the project across sessions.
 
 ## Current Milestone
-**Sprint 4 — Matches & Results: Match v1 implementation completed; verification and integration hardening next.**
+**Sprint 4 — Matches & Results: Completed and locally verified.**
 
 ## Completed Milestones
 ### Teams ✅
@@ -16,10 +16,9 @@
 - Season domain model with Competition relationship and date-range validation.
 - Season CRUD, repository, EF configuration, foreign key and unique `(CompetitionId, Name)` constraint.
 - PostgreSQL/Testcontainers integration coverage.
-- Verified latest full suite before Match work: **51 passed, 0 failed, 0 skipped**.
+- Verified baseline before Match work: **51 passed, 0 failed, 0 skipped**.
 
-### Match v1 🚧
-Implemented on `main`:
+### Match v1 ✅
 - Match domain entity and enums.
 - Domain invariants for team identity and score consistency.
 - Result derived from final scores.
@@ -28,17 +27,17 @@ Implemented on `main`:
 - EF Core configuration with Season, HomeTeam and AwayTeam foreign keys.
 - Carter API endpoints.
 - Match API contracts.
-- Domain tests for core Match invariants.
-- PostgreSQL migration and EF model snapshot/designer updates.
+- Match tests added without regression.
+- PostgreSQL migration and EF model metadata.
 
 ## Current Verification
-The last verified green result before Match implementation remains:
-- **51 passed**
+Latest local verification after Match implementation:
+- **59 passed**
 - **0 failed**
 - **0 skipped**
-- **51 total**
+- **59 total**
 
-The new Match implementation has **not yet been executed by the project test runner in this session**, so no new test count is claimed.
+This is the current green baseline.
 
 ## Match v1
 ```text
@@ -137,21 +136,19 @@ Team
 
 We intentionally do not add `ShortName`, `Code`, `CountryId`, or a separate Country entity at this stage.
 
-## Next Exact Steps
-1. Run `dotnet test` against the complete solution.
-2. Fix any compile/test failures introduced by Match implementation.
-3. Add Match application tests with mocked repository.
-4. Add Match PostgreSQL/Testcontainers integration coverage.
-5. Verify migration application against PostgreSQL.
-6. Verify Match API CRUD behavior.
-7. Record the exact final test count.
-8. Update strategic documentation after verification.
+## Next Milestone — Sprint 5
+**External Data Import**
 
-## Success Condition
-The Match module is production-oriented, persisted in PostgreSQL, exposed through the API, covered by meaningful domain/application/integration tests, and the complete suite remains green.
+Planned focus:
+1. Define external-provider integration boundary.
+2. Select and document the first football data provider.
+3. Define provider DTOs separately from internal domain models.
+4. Build mapping from provider data to Team, Competition, Season and Match.
+5. Add resilient import workflow with validation, idempotency and error handling.
+6. Add integration tests using provider fixtures/mocks.
+7. Only then introduce background scheduling.
 
 ## Known Issues / Decisions To Review
-- The Match migration was completed manually because the current execution environment cannot run the repository's .NET tooling; it must be verified locally/CI with EF tooling.
 - Teams update endpoint remains `POST /teams/update`; Competition, Season and Match use conventional resource routes. Endpoint consistency can be refactored later.
 - Competition-to-Team relationships are intentionally deferred except where required by Match relationships.
 - Optimistic concurrency, soft delete and other advanced production concerns remain deferred until justified.
