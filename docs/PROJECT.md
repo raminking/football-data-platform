@@ -4,7 +4,7 @@
 
 Football Data Platform is a production-oriented backend project built to demonstrate modern Backend Engineering and Data Engineering practices.
 
-The project is designed as a portfolio to showcase software architecture, clean code, testing, database design, and API development.
+The project is designed as a portfolio to showcase software architecture, clean code, testing, relational database design, domain modelling, and API development.
 
 ---
 
@@ -20,21 +20,44 @@ This project is intentionally developed as if it were a real production system r
 
 Current Sprint:
 
-**Sprint 3 – Competitions Module**
+**Sprint 4 – Matches & Results**
 
-Previous sprint completed:
+Completed milestones:
 
-**Sprint 2 – Teams Module**
+- **Sprint 2 – Teams Module**
+- **Sprint 3 – Competitions & Seasons**
 
-Teams is fully implemented and locally verified with **27 passing tests**.
+Latest verified suite:
+
+**51 passed, 0 failed, 0 skipped**
 
 Current focus:
 
-- Competition domain
-- Season domain
-- Competition → Seasons relationship
-- CRUD APIs
-- Domain/Application/API/Integration tests
+- Finalize the Match v1 domain model
+- Model Season → Match and Home/Away Team relationships
+- Implement match status, stage, scores and result consistency
+- CRUD/application operations
+- PostgreSQL persistence and migration
+- Carter API
+- Domain/application/integration tests
+
+The current domain baseline is documented in `docs/DOMAIN_MODEL.md`.
+
+---
+
+## Core Domain Boundary
+
+```text
+Competition
+    ↓
+Season
+    ↓
+Match
+   ├── HomeTeam
+   └── AwayTeam
+```
+
+A Match belongs to a specific Season rather than directly to Competition. This allows the same Team to participate in different competitions and seasons without coupling Match directly to Competition.
 
 ---
 
@@ -45,6 +68,7 @@ Backend
 - ASP.NET Core 8
 - C#
 - Minimal APIs
+- Carter
 - MediatR
 
 Database
@@ -58,6 +82,7 @@ Architecture
 - Vertical Slice Architecture
 - Clean Architecture
 - Repository Pattern
+- Rich Domain Model
 
 Testing
 
@@ -72,6 +97,7 @@ Future
 - Logging
 - Caching
 - Background Jobs
+- External football-data synchronization
 
 ---
 
@@ -84,7 +110,11 @@ This project follows:
 - KISS
 - YAGNI
 - Separation of Concerns
-- Production Ready Code
+- Production-oriented design
+- Explicit domain invariants
+- Testable application boundaries
+
+The MVP intentionally avoids premature modelling of competition formats, groups, qualification rules and detailed match events.
 
 ---
 
@@ -94,7 +124,10 @@ When completed, this repository should demonstrate the ability to:
 
 - Design backend systems
 - Build REST APIs
-- Model domains
+- Model real-world domains
 - Work with relational databases
+- Apply Clean/Vertical Slice Architecture
+- Build meaningful automated tests
 - Explain architectural decisions
-- Pass Backend Engineer interviews
+- Integrate external data sources
+- Explain engineering trade-offs during Backend Engineer interviews
