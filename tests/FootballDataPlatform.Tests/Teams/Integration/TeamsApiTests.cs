@@ -39,6 +39,50 @@ public class TeamsApiTests
     }
 
     [Fact]
+    public async Task CreateTeam_WithEmptyName_ReturnsBadRequest()
+    {
+        // Arrange
+        await using var factory = new CustomWebApplicationFactory();
+        using var client = factory.CreateClient();
+
+        var request = new CreateTeamRequest(
+            string.Empty,
+            "Portugal");
+
+        // Act
+        var response = await client.PostAsJsonAsync(
+            "/teams",
+            request);
+
+        // Assert
+        Assert.Equal(
+            HttpStatusCode.BadRequest,
+            response.StatusCode);
+    }
+
+    [Fact]
+    public async Task CreateTeam_WithEmptyCountry_ReturnsBadRequest()
+    {
+        // Arrange
+        await using var factory = new CustomWebApplicationFactory();
+        using var client = factory.CreateClient();
+
+        var request = new CreateTeamRequest(
+            "Sporting CP",
+            string.Empty);
+
+        // Act
+        var response = await client.PostAsJsonAsync(
+            "/teams",
+            request);
+
+        // Assert
+        Assert.Equal(
+            HttpStatusCode.BadRequest,
+            response.StatusCode);
+    }
+
+    [Fact]
     public async Task GetTeam_WithUnknownId_ReturnsNotFound()
     {
         // Arrange
