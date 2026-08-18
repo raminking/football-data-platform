@@ -20,7 +20,7 @@ Completed
 
 Outcome
 
-A production-ready project foundation was established.
+A production-oriented project foundation was established.
 
 ---
 
@@ -55,34 +55,80 @@ A production-ready project foundation was established.
 
 ---
 
-## Sprint 3: Competitions Module
+## Sprint 3: Competitions & Seasons
 
-**Status: 🚧 In Progress**
+**Status: ✅ Completed and locally verified**
 
 **Goal:** Build the competition and season domain required for the football platform.
 
-### Planned Stories
-- [ ] **Competition Entity:** Support league and cup competitions.
-- [ ] **Create Competition:** Register a competition with validated identity fields.
-- [ ] **Get Competition:** Retrieve a competition by ID.
-- [ ] **Update Competition:** Update competition details while enforcing uniqueness/domain rules.
-- [ ] **Delete Competition:** Remove a competition according to domain rules.
-- [ ] **Season Entity:** Model competition seasons.
-- [ ] **Competition → Seasons:** Establish the relationship after both aggregates are stable.
-- [ ] **Testing:** Domain, Application, API, and PostgreSQL integration coverage.
+### Completed Stories
+- [x] **Competition Entity:** Support league and cup competitions.
+- [x] **Create/Get/Update/Delete Competition:** Validated competition identity and lifecycle operations.
+- [x] **Season Entity:** Model a specific competition edition.
+- [x] **Competition → Season relationship:** Establish the relationship with validation.
+- [x] **Season date-range validation.**
+- [x] **Unique season name within competition.**
+- [x] **PostgreSQL persistence and EF migration.**
+- [x] **Carter API.**
+- [x] **Domain/Application/integration coverage.**
 
-### Implementation Order
-1. Competition domain
-2. Competition CRUD
-3. Season domain
-4. Competition/Season relationship
-5. Integration verification
+### Verification
+- **51 passed, 0 failed, 0 skipped**
 
 ---
 
 ## Sprint 4: Matches & Results
 
-**Status: Planned**
+**Status: 🚧 In Progress — Domain Design Completed**
+
+**Goal:** Implement the core Match domain that connects Teams to a specific Competition Season.
+
+### Domain Design Completed
+- [x] Match v1 entity shape defined.
+- [x] Season → Match relationship defined.
+- [x] HomeTeam and AwayTeam relationships defined.
+- [x] Match status lifecycle defined.
+- [x] Match stage kept intentionally simple.
+- [x] Full-time and half-time score model defined.
+- [x] Result semantics defined.
+- [x] Result/score consistency identified as a domain invariant.
+- [x] Intentional MVP boundaries documented.
+
+### Match v1
+
+```text
+Match
+├── Id
+├── SeasonId
+├── HomeTeamId
+├── AwayTeamId
+├── ScheduledAt
+├── Stage
+├── Status
+├── HomeScore
+├── AwayScore
+├── HalfTimeHomeScore
+├── HalfTimeAwayScore
+└── Result
+```
+
+### Next Implementation Stories
+- [ ] Match domain implementation.
+- [ ] Domain invariants and validation tests.
+- [ ] Application CRUD operations.
+- [ ] Repository abstraction and PostgreSQL implementation.
+- [ ] EF configuration and migration.
+- [ ] Carter API endpoints.
+- [ ] PostgreSQL/Testcontainers integration coverage.
+- [ ] Full suite verification.
+- [ ] Documentation synchronization after implementation.
+
+### Deliberately Deferred
+- [ ] Extra-time and penalty-shootout scores.
+- [ ] Goals, cards, substitutions and detailed match events.
+- [ ] Lineups, referee, venue and weather.
+- [ ] Competition formats, groups and qualification rules.
+- [ ] Season participants and promotion/relegation rules.
 
 ---
 
