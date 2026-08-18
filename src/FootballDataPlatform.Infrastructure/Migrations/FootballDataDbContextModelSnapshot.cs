@@ -16,99 +16,78 @@ namespace FootballDataPlatform.Infrastructure.Migrations
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.11")
-                .HasAnnotation("Relational:MaxIdentifierLength", 63);
-
+            modelBuilder.HasAnnotation("ProductVersion", "8.0.11").HasAnnotation("Relational:MaxIdentifierLength", 63);
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("FootballDataPlatform.Domain.Competitions.Competition", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Code")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)");
-
-                    b.Property<string>("Country")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(150)
-                        .HasColumnType("character varying(150)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Name", "Country", "Code")
-                        .IsUnique();
-
-                    b.ToTable("Competitions");
-                });
+            {
+                b.Property<Guid>("Id").ValueGeneratedOnAdd().HasColumnType("uuid");
+                b.Property<string>("Code").IsRequired().HasMaxLength(20).HasColumnType("character varying(20)");
+                b.Property<string>("Country").IsRequired().HasMaxLength(100).HasColumnType("character varying(100)");
+                b.Property<string>("Name").IsRequired().HasMaxLength(150).HasColumnType("character varying(150)");
+                b.HasKey("Id");
+                b.HasIndex("Name", "Country", "Code").IsUnique();
+                b.ToTable("Competitions");
+            });
 
             modelBuilder.Entity("FootballDataPlatform.Domain.Competitions.Season", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("CompetitionId")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateOnly>("EndDate")
-                        .HasColumnType("date");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.Property<DateOnly>("StartDate")
-                        .HasColumnType("date");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CompetitionId", "Name")
-                        .IsUnique();
-
-                    b.ToTable("Seasons");
-                });
+            {
+                b.Property<Guid>("Id").ValueGeneratedOnAdd().HasColumnType("uuid");
+                b.Property<Guid>("CompetitionId").HasColumnType("uuid");
+                b.Property<DateOnly>("EndDate").HasColumnType("date");
+                b.Property<string>("Name").IsRequired().HasMaxLength(50).HasColumnType("character varying(50)");
+                b.Property<DateOnly>("StartDate").HasColumnType("date");
+                b.HasKey("Id");
+                b.HasIndex("CompetitionId", "Name").IsUnique();
+                b.ToTable("Seasons");
+            });
 
             modelBuilder.Entity("FootballDataPlatform.Domain.Teams.Team", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+            {
+                b.Property<Guid>("Id").ValueGeneratedOnAdd().HasColumnType("uuid");
+                b.Property<string>("Country").IsRequired().HasColumnType("text");
+                b.Property<string>("Name").IsRequired().HasColumnType("text");
+                b.HasKey("Id");
+                b.HasIndex("Name", "Country").IsUnique();
+                b.ToTable("Teams");
+            });
 
-                    b.Property<string>("Country")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Name", "Country")
-                        .IsUnique();
-
-                    b.ToTable("Teams");
-                });
+            modelBuilder.Entity("FootballDataPlatform.Domain.Match.Match", b =>
+            {
+                b.Property<Guid>("Id").ValueGeneratedOnAdd().HasColumnType("uuid");
+                b.Property<Guid>("SeasonId").HasColumnType("uuid");
+                b.Property<Guid>("HomeTeamId").HasColumnType("uuid");
+                b.Property<Guid>("AwayTeamId").HasColumnType("uuid");
+                b.Property<DateTimeOffset>("ScheduledAt").HasColumnType("timestamp with time zone");
+                b.Property<string>("Stage").IsRequired().HasMaxLength(30).HasColumnType("character varying(30)");
+                b.Property<string>("Status").IsRequired().HasMaxLength(20).HasColumnType("character varying(20)");
+                b.Property<int?>("HomeScore").HasColumnType("integer");
+                b.Property<int?>("AwayScore").HasColumnType("integer");
+                b.Property<int?>("HalfTimeHomeScore").HasColumnType("integer");
+                b.Property<int?>("HalfTimeAwayScore").HasColumnType("integer");
+                b.Property<string>("Result").HasMaxLength(20).HasColumnType("character varying(20)");
+                b.HasKey("Id");
+                b.HasIndex("SeasonId", "ScheduledAt");
+                b.HasIndex("HomeTeamId");
+                b.HasIndex("AwayTeamId");
+                b.ToTable("Matches");
+            });
 
             modelBuilder.Entity("FootballDataPlatform.Domain.Competitions.Season", b =>
-                {
-                    b.HasOne("FootballDataPlatform.Domain.Competitions.Competition", null)
-                        .WithMany()
-                        .HasForeignKey("CompetitionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
+            {
+                b.HasOne("FootballDataPlatform.Domain.Competitions.Competition", null)
+                    .WithMany().HasForeignKey("CompetitionId").OnDelete(DeleteBehavior.Cascade).IsRequired();
+            });
+
+            modelBuilder.Entity("FootballDataPlatform.Domain.Match.Match", b =>
+            {
+                b.HasOne("FootballDataPlatform.Domain.Competitions.Season", null)
+                    .WithMany().HasForeignKey("SeasonId").OnDelete(DeleteBehavior.Restrict).IsRequired();
+                b.HasOne("FootballDataPlatform.Domain.Teams.Team", null)
+                    .WithMany().HasForeignKey("HomeTeamId").OnDelete(DeleteBehavior.Restrict).IsRequired();
+                b.HasOne("FootballDataPlatform.Domain.Teams.Team", null)
+                    .WithMany().HasForeignKey("AwayTeamId").OnDelete(DeleteBehavior.Restrict).IsRequired();
+            });
 #pragma warning restore 612, 618
         }
     }
