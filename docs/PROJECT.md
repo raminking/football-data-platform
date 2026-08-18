@@ -4,7 +4,7 @@
 
 Football Data Platform is a production-oriented backend project built to demonstrate modern Backend Engineering and Data Engineering practices.
 
-The project is designed as a portfolio to showcase software architecture, clean code, testing, database design, and API development skills.
+The project is designed as a portfolio to showcase software architecture, clean code, testing, database design, and API development.
 
 ---
 
@@ -20,19 +20,21 @@ This project is intentionally developed as if it were a real production system r
 
 Current Sprint:
 
+**Sprint 3 – Competitions Module**
+
+Previous sprint completed:
+
 **Sprint 2 – Teams Module**
 
-Completed features:
+Teams is fully implemented and locally verified with **27 passing tests**.
 
-- Team Domain
-- Create Team API
-- Get Team API
-- PostgreSQL Integration
-- Entity Framework Core
-- Repository Pattern
-- Vertical Slice Architecture
-- Initial Database Migration
-- Unit Tests
+Current focus:
+
+- Competition domain
+- Season domain
+- Competition → Seasons relationship
+- CRUD APIs
+- Domain/Application/API/Integration tests
 
 ---
 
@@ -60,6 +62,7 @@ Architecture
 Testing
 
 - xUnit
+- Testcontainers PostgreSQL integration tests
 
 Future
 
