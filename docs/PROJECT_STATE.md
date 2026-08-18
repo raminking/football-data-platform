@@ -3,7 +3,7 @@
 > Compact source of truth for continuing the project across sessions.
 
 ## Current Milestone
-**Sprint 4 — Matches & Results: Match domain design completed; implementation next.**
+**Sprint 4 — Matches & Results: Match v1 implementation completed; verification and integration hardening next.**
 
 ## Completed Milestones
 ### Teams ✅
@@ -18,19 +18,29 @@
 - PostgreSQL/Testcontainers integration coverage.
 - Verified latest full suite before Match work: **51 passed, 0 failed, 0 skipped**.
 
+### Match v1 🚧
+Implemented on `main`:
+- Match domain entity and enums.
+- Domain invariants for team identity and score consistency.
+- Result derived from final scores.
+- Application create/get/update/delete flows with MediatR.
+- Match repository abstraction and PostgreSQL implementation.
+- EF Core configuration with Season, HomeTeam and AwayTeam foreign keys.
+- Carter API endpoints.
+- Match API contracts.
+- Domain tests for core Match invariants.
+- PostgreSQL migration and EF model snapshot/designer updates.
+
 ## Current Verification
-Latest verified test result before Match implementation:
+The last verified green result before Match implementation remains:
 - **51 passed**
 - **0 failed**
 - **0 skipped**
 - **51 total**
 
-No Match implementation has been verified yet. The 51-test result remains the last known green baseline.
+The new Match implementation has **not yet been executed by the project test runner in this session**, so no new test count is claimed.
 
-## Current Task — Matches
-The Match v1 domain design is fixed and documented. Team remains unchanged. Next is implementation.
-
-### Match v1
+## Match v1
 ```text
 Match
 ├── Id
@@ -67,7 +77,6 @@ A Match belongs to a Season, not directly to Competition. HomeTeam and AwayTeam 
 - Abandoned
 
 ### Match Stage
-Keep v1 intentionally simple:
 - League
 - Group Stage
 - League Phase
@@ -83,7 +92,19 @@ Keep v1 intentionally simple:
 - Draw
 - AwayWin
 
-Result must be consistent with final scores. Prefer deriving it from scores where practical.
+Result is derived from final scores. Finished matches require final scores.
+
+## Domain Invariants Implemented
+- SeasonId is required.
+- HomeTeamId is required.
+- AwayTeamId is required.
+- Home and away teams must be different.
+- Final scores must be supplied together.
+- Half-time scores must be supplied together.
+- Scores cannot be negative.
+- Half-time scores cannot exceed final scores.
+- Finished matches require final scores.
+- Result is calculated from final scores and therefore cannot contradict them.
 
 ## Domain Boundary
 The current MVP intentionally does not model:
@@ -105,8 +126,6 @@ The current MVP intentionally does not model:
 - Promotion/relegation rules
 - Qualification rules
 
-These are deferred until the core model requires them.
-
 ## Team Model Decision
 The current repository Team model is the source of truth for MVP:
 ```text
@@ -116,25 +135,24 @@ Team
 └── Country
 ```
 
-We intentionally do not add `ShortName`, `Code`, `CountryId`, or a separate Country entity at this stage. Match implementation must reference this existing Team model rather than introducing a second Team representation.
+We intentionally do not add `ShortName`, `Code`, `CountryId`, or a separate Country entity at this stage.
 
 ## Next Exact Steps
-1. Implement Match domain types and entity using the agreed v1 model.
-2. Add domain invariants, including different home/away teams and score/result consistency.
-3. Implement Match application commands/queries and CRUD operations.
-4. Add repository abstraction and PostgreSQL implementation.
-5. Configure EF relationships for Season, HomeTeam and AwayTeam.
-6. Create and verify the EF migration.
-7. Add Carter API endpoints.
-8. Add domain/application tests and PostgreSQL/Testcontainers integration tests.
-9. Run the complete suite and record the exact result.
-10. Update all strategic documentation after the Match implementation milestone.
+1. Run `dotnet test` against the complete solution.
+2. Fix any compile/test failures introduced by Match implementation.
+3. Add Match application tests with mocked repository.
+4. Add Match PostgreSQL/Testcontainers integration coverage.
+5. Verify migration application against PostgreSQL.
+6. Verify Match API CRUD behavior.
+7. Record the exact final test count.
+8. Update strategic documentation after verification.
 
 ## Success Condition
-The Match module is production-oriented, persisted in PostgreSQL, exposed through the API, covered by meaningful domain and integration tests, and the complete suite remains green.
+The Match module is production-oriented, persisted in PostgreSQL, exposed through the API, covered by meaningful domain/application/integration tests, and the complete suite remains green.
 
 ## Known Issues / Decisions To Review
-- Teams update endpoint remains `POST /teams/update`; Competition and Season use conventional resource routes. Endpoint consistency can be refactored later.
+- The Match migration was completed manually because the current execution environment cannot run the repository's .NET tooling; it must be verified locally/CI with EF tooling.
+- Teams update endpoint remains `POST /teams/update`; Competition, Season and Match use conventional resource routes. Endpoint consistency can be refactored later.
 - Competition-to-Team relationships are intentionally deferred except where required by Match relationships.
 - Optimistic concurrency, soft delete and other advanced production concerns remain deferred until justified.
 - Team remains intentionally simple until real requirements justify expansion.
