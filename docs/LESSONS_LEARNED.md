@@ -17,7 +17,7 @@ Teams
 - UpdateTeam
 - DeleteTeam
 
-The same approach is used for Competitions, Seasons and later football-domain modules such as Matches.
+The same approach is used for Competitions, Seasons and Matches.
 
 Benefits
 
@@ -36,13 +36,11 @@ Example
 
 Application
 
-`ITeamRepository`
+`ITeamRepository`, `ICompetitionRepository`, `ISeasonRepository`, `IMatchRepository`
 
 Infrastructure
 
-`TeamRepository`
-
-The same boundary is used for Competition, Season and Match persistence.
+Concrete repository implementations
 
 Benefits
 
@@ -63,8 +61,6 @@ Competition
 └── Season
 ```
 
-This avoids putting year-specific information on Competition and allows the same competition to change its participating-team count or format between seasons.
-
 ### Match Belongs to Season
 
 A Match belongs to a specific Season rather than directly to Competition.
@@ -78,6 +74,19 @@ Competition
 ```
 
 This allows a team to participate in matches across multiple competitions without coupling Match directly to Competition.
+
+### Keep Team Simple
+
+The current MVP Team model intentionally remains:
+
+```text
+Team
+├── Id
+├── Name
+└── Country
+```
+
+We avoid adding fields such as `ShortName`, `Code`, or a separate Country entity until a real requirement justifies them. This follows KISS/YAGNI and keeps the current domain aligned with the implementation.
 
 ### Match MVP Boundary
 
@@ -96,9 +105,7 @@ Detailed match events and competition rules are deliberately postponed to avoid 
 
 ### Result Consistency
 
-`Result` is not an independent arbitrary fact. It must agree with the final scores.
-
-For example:
+`Result` is not an independent arbitrary fact. It is derived from the final scores.
 
 ```text
 3 - 1 → HomeWin
@@ -106,9 +113,18 @@ For example:
 0 - 2 → AwayWin
 ```
 
-An inconsistent state such as `3 - 1 → Draw` must be rejected by the domain/application model.
+This prevents contradictory states such as `3 - 1 → Draw`.
 
-Where practical, Result should be derived from the final scores.
+### Multiple Foreign Keys to One Entity
+
+Match references Team twice through distinct relationships:
+
+```text
+Match.HomeTeamId → Team.Id
+Match.AwayTeamId → Team.Id
+```
+
+EF Core requires explicit relationship configuration for these two foreign keys. Restricting cascade delete also prevents accidental deletion chains from Team/Season into historical Match records.
 
 ---
 
@@ -122,7 +138,8 @@ Learned
 - Migrations
 - Database Update
 - PostgreSQL integration testing with Testcontainers
-- Multiple foreign keys from Match to the same Team entity require explicit relationship configuration
+- Explicit configuration for multiple foreign keys from Match to Team
+- Keeping persistence configuration separate from domain invariants
 
 ---
 
@@ -164,9 +181,31 @@ Current strategy
 
 Latest verified milestone result:
 
-**51 passed, 0 failed, 0 skipped**
+**59 passed, 0 failed, 0 skipped**
 
-The same verification standard is required for Match before the milestone can be considered complete.
+The complete suite remained green after adding Match.
+
+---
+
+## External Data Import — Next Lesson
+
+The next milestone introduces external provider data. Provider-specific DTOs should remain outside the domain so that changing providers does not force domain changes.
+
+The intended boundary is:
+
+```text
+External Provider
+      ↓
+Provider Adapter
+      ↓
+Internal DTO / Mapping
+      ↓
+Domain
+      ↓
+Persistence
+```
+
+Idempotency, validation and retry behavior should be designed before introducing recurring background jobs.
 
 ---
 
