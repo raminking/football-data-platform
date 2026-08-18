@@ -17,7 +17,7 @@ This document outlines the strategic development plan for the Football Data Plat
 ---
 
 ## Sprint 2 — Teams Module ✅
-**Status:** Completed
+**Status:** Completed and locally verified
 
 **Completed Features:**
 - [x] Team Entity (Rich Domain Model)
@@ -27,23 +27,34 @@ This document outlines the strategic development plan for the Football Data Plat
 - [x] Delete Team (Hard Delete)
 - [x] Repository Pattern Implementation
 - [x] Unit Tests (Domain & Application layers)
-- [x] RESTful API Endpoints (Carter)
+- [x] API Endpoints (Carter)
+- [x] PostgreSQL integration tests with Testcontainers
+- [x] Full test suite verified: 27 passed, 0 failed, 0 skipped
 
 **Deferred / Future Improvements:**
 - [ ] Optimistic Concurrency Control (RowVersion)
-- [ ] Integration Tests (End-to-End)
 - [ ] Soft Delete vs Hard Delete decision (ADR)
+- [ ] Review/update endpoint route consistency (`POST /teams/update` vs conventional `PUT /teams/{id}`)
 
 ---
 
 ## Sprint 3 — Competitions Module 🚧
-**Status:** Planned / Next
+**Status:** In Progress
 
+### Initial Scope
 - Competition Entity (League, Cup)
 - Season Entity
 - Relationship: Competition has many Seasons
-- Validation: Date ranges, unique names per season
+- Validation: date ranges and competition/season uniqueness rules
 - CRUD APIs
+- Unit, domain, and PostgreSQL integration tests
+
+### Current Order
+1. Competition domain model
+2. Competition CRUD
+3. Season domain model
+4. Competition → Seasons relationship
+5. Integration/API coverage
 
 ---
 
@@ -76,4 +87,3 @@ This document outlines the strategic development plan for the Football Data Plat
 - Docker Containerization
 - Health Checks
 - Advanced CI/CD (Security Scans, Performance Tests)
-
