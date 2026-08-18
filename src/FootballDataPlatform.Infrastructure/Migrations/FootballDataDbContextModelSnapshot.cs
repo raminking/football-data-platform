@@ -22,25 +22,24 @@ namespace FootballDataPlatform.Infrastructure.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("FootballDataPlatform.Domain.Competitions.Competition", b =>
+                {
+                    b.Property<Guid>("Id").ValueGeneratedOnAdd().HasColumnType("uuid");
+                    b.Property<string>("Code").IsRequired().HasMaxLength(20).HasColumnType("character varying(20)");
+                    b.Property<string>("Country").IsRequired().HasMaxLength(100).HasColumnType("character varying(100)");
+                    b.Property<string>("Name").IsRequired().HasMaxLength(150).HasColumnType("character varying(150)");
+                    b.HasKey("Id");
+                    b.HasIndex("Name", "Country", "Code").IsUnique();
+                    b.ToTable("Competitions");
+                });
+
             modelBuilder.Entity("FootballDataPlatform.Domain.Teams.Team", b =>
                 {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Country")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text");
-
+                    b.Property<Guid>("Id").ValueGeneratedOnAdd().HasColumnType("uuid");
+                    b.Property<string>("Country").IsRequired().HasColumnType("text");
+                    b.Property<string>("Name").IsRequired().HasColumnType("text");
                     b.HasKey("Id");
-
-                    b.HasIndex("Name", "Country")
-                        .IsUnique();
-
+                    b.HasIndex("Name", "Country").IsUnique();
                     b.ToTable("Teams");
                 });
 #pragma warning restore 612, 618
