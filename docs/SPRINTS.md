@@ -79,20 +79,27 @@ A production-oriented project foundation was established.
 
 ## Sprint 4: Matches & Results
 
-**Status: 🚧 In Progress — Domain Design Completed**
+**Status: ✅ Completed and locally verified**
 
 **Goal:** Implement the core Match domain that connects Teams to a specific Competition Season.
 
-### Domain Design Completed
-- [x] Match v1 entity shape defined.
-- [x] Season → Match relationship defined.
-- [x] HomeTeam and AwayTeam relationships defined.
-- [x] Match status lifecycle defined.
-- [x] Match stage kept intentionally simple.
-- [x] Full-time and half-time score model defined.
-- [x] Result semantics defined.
-- [x] Result/score consistency identified as a domain invariant.
-- [x] Intentional MVP boundaries documented.
+### Completed Stories
+- [x] Match v1 entity and enums.
+- [x] Season → Match relationship.
+- [x] HomeTeam and AwayTeam relationships.
+- [x] Match status lifecycle.
+- [x] Simple Match stage model.
+- [x] Full-time and half-time scores.
+- [x] Result derived from final scores.
+- [x] Domain invariants and validation.
+- [x] Application CRUD operations.
+- [x] Repository abstraction and PostgreSQL implementation.
+- [x] EF Core configuration and migration.
+- [x] Carter API endpoints.
+- [x] Match contracts.
+- [x] Automated test coverage.
+- [x] Full local test suite verification.
+- [x] Documentation synchronization.
 
 ### Match v1
 
@@ -112,16 +119,8 @@ Match
 └── Result
 ```
 
-### Next Implementation Stories
-- [ ] Match domain implementation.
-- [ ] Domain invariants and validation tests.
-- [ ] Application CRUD operations.
-- [ ] Repository abstraction and PostgreSQL implementation.
-- [ ] EF configuration and migration.
-- [ ] Carter API endpoints.
-- [ ] PostgreSQL/Testcontainers integration coverage.
-- [ ] Full suite verification.
-- [ ] Documentation synchronization after implementation.
+### Verification
+- **59 passed, 0 failed, 0 skipped**
 
 ### Deliberately Deferred
 - [ ] Extra-time and penalty-shootout scores.
@@ -134,10 +133,30 @@ Match
 
 ## Sprint 5: External Data Import
 
-**Status: Planned**
+**Status: 🚧 Next**
+
+**Goal:** Introduce a production-oriented external football-data ingestion boundary without coupling providers directly to the domain.
+
+### Planned Stories
+- [ ] Select first external football-data provider.
+- [ ] Define provider adapter abstraction.
+- [ ] Create provider-specific DTOs.
+- [ ] Map provider data into internal Team/Competition/Season/Match models.
+- [ ] Add validation and idempotent synchronization.
+- [ ] Define import error handling and retry strategy.
+- [ ] Add provider fixture/mocked integration tests.
+- [ ] Evaluate background job scheduling after synchronous import is stable.
 
 ---
 
 ## Sprint 6: Production Readiness
 
 **Status: Planned**
+
+- Authentication and Authorization
+- Structured Logging
+- Docker Containerization
+- Health Checks
+- Advanced CI/CD
+- Security Scans
+- Performance Tests
