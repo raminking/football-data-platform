@@ -21,20 +21,17 @@ This document outlines the strategic development plan for the Football Data Plat
 
 **Completed Features:**
 - [x] Team Entity (Rich Domain Model)
-- [x] Create Team (with uniqueness validation)
-- [x] Get Team (by ID)
-- [x] Update Team (with domain rules & duplicate checks)
-- [x] Delete Team (Hard Delete)
-- [x] Repository Pattern Implementation
-- [x] Unit Tests (Domain & Application layers)
-- [x] API Endpoints (Carter)
-- [x] PostgreSQL integration tests with Testcontainers
-- [x] Full test suite verified: 27 passed, 0 failed, 0 skipped
+- [x] Create/Get/Update/Delete Team
+- [x] Validation and uniqueness rules
+- [x] Repository implementation
+- [x] Carter API
+- [x] PostgreSQL/Testcontainers integration tests
+- [x] Full suite verified: 27 passed, 0 failed, 0 skipped
 
-**Deferred / Future Improvements:**
-- [ ] Optimistic Concurrency Control (RowVersion)
-- [ ] Soft Delete vs Hard Delete decision (ADR)
-- [ ] Review/update endpoint route consistency (`POST /teams/update` vs conventional `PUT /teams/{id}`)
+**Deferred:**
+- [ ] Optimistic Concurrency Control
+- [ ] Soft Delete vs Hard Delete ADR
+- [ ] Endpoint route consistency
 
 ---
 
@@ -42,52 +39,46 @@ This document outlines the strategic development plan for the Football Data Plat
 **Status:** Completed and locally verified
 
 ### Competition
-- [x] Competition Entity (League/Cup)
-- [x] Create/Get/Update/Delete
-- [x] Validation and uniqueness rules
+- [x] Competition Entity
+- [x] CRUD
+- [x] Validation and uniqueness
 - [x] PostgreSQL persistence
 - [x] Carter API
-- [x] Domain and integration tests
-- [x] EF Core migration and designer metadata
+- [x] Domain/integration tests
+- [x] EF Core migration
 
 ### Season
 - [x] Season Entity
-- [x] Competition → Seasons relationship
+- [x] Competition → Season relationship
 - [x] Date-range validation
 - [x] Unique season name within competition
-- [x] Create/Get/Update/Delete
-- [x] PostgreSQL persistence and EF migration
+- [x] CRUD
+- [x] PostgreSQL persistence
 - [x] Carter API
 - [x] Integration coverage
-- [x] Full suite verified: **51 passed, 0 failed, 0 skipped**
+- [x] Verified baseline: 51 passed, 0 failed, 0 skipped
 
 ---
 
-## Sprint 4 — Matches & Results 🚧
-**Status:** In Progress
+## Sprint 4 — Matches & Results ✅
+**Status:** Completed and locally verified
 
-### Domain Baseline
-- [x] Define Match v1 model
-- [x] Define Season → Match relationship
-- [x] Define HomeTeam/AwayTeam relationships
-- [x] Define Match Status lifecycle
-- [x] Define Match Stage boundary
-- [x] Define half-time and full-time scores
-- [x] Define Result semantics and score consistency rule
-- [x] Document intentional MVP boundaries
-
-### Implementation Scope
-- [ ] Match domain entity and value/enumeration types
-- [ ] Domain invariants and validation
-- [ ] Application commands/queries and CRUD operations
-- [ ] Repository abstraction and implementation
-- [ ] EF Core configuration with Season and two Team foreign keys
-- [ ] PostgreSQL migration
-- [ ] Carter API endpoints
-- [ ] Domain/Application tests
-- [ ] PostgreSQL/Testcontainers integration tests
-- [ ] Full suite verification
-- [ ] Strategic documentation update after implementation milestone
+### Completed
+- [x] Match v1 domain model
+- [x] Season → Match relationship
+- [x] HomeTeam/AwayTeam relationships
+- [x] Match Status lifecycle
+- [x] Match Stage model
+- [x] Full-time and half-time scores
+- [x] Result derived from final scores
+- [x] Domain invariants
+- [x] Application CRUD
+- [x] Repository abstraction and PostgreSQL implementation
+- [x] EF Core configuration and migration
+- [x] Carter API
+- [x] Domain/application/integration test coverage
+- [x] Full local suite verification
+- [x] Documentation synchronization
 
 ### Match v1 Model
 
@@ -107,8 +98,10 @@ Match
 └── Result
 ```
 
-### Intentionally Deferred
+### Verification
+**59 passed, 0 failed, 0 skipped**
 
+### Intentionally Deferred
 - Extra-time and penalty-shootout score modelling
 - Goals, cards, substitutions and other match events
 - Lineups, referee, venue and weather
@@ -118,13 +111,23 @@ Match
 
 ---
 
-## Sprint 5 — External Data Import
-**Status:** Planned
+## Sprint 5 — External Data Import 🚧
+**Status:** Next
 
-- Football Data API Integration (e.g., API-Football)
-- Background Jobs (Hangfire/Quartz)
-- Data Synchronization Strategies
-- Error Handling & Retries
+**Goal:** Introduce a provider-independent ingestion boundary for real football data.
+
+### Planned Work
+- [ ] Select and document first football-data provider
+- [ ] Define external provider adapter abstraction
+- [ ] Keep provider DTOs separate from internal domain models
+- [ ] Map provider data to Team, Competition, Season and Match
+- [ ] Implement validation and idempotent synchronization
+- [ ] Define import error handling and retry strategy
+- [ ] Add provider fixtures/mocked integration tests
+- [ ] Evaluate background scheduling after import flow is stable
+
+### Engineering Focus
+The import layer must not leak provider-specific models into the domain. Provider changes should be isolated behind an adapter boundary.
 
 ---
 
@@ -135,4 +138,6 @@ Match
 - Structured Logging (Serilog)
 - Docker Containerization
 - Health Checks
-- Advanced CI/CD (Security Scans, Performance Tests)
+- Advanced CI/CD
+- Security Scans
+- Performance Tests
