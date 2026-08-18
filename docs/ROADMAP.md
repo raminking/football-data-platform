@@ -38,34 +38,52 @@ This document outlines the strategic development plan for the Football Data Plat
 
 ---
 
-## Sprint 3 — Competitions Module 🚧
-**Status:** In Progress
+## Sprint 3 — Competitions & Seasons ✅
+**Status:** Completed and locally verified
 
-### Initial Scope
-- Competition Entity (League, Cup)
-- Season Entity
-- Relationship: Competition has many Seasons
-- Validation: date ranges and competition/season uniqueness rules
-- CRUD APIs
-- Unit, domain, and PostgreSQL integration tests
+### Competition
+- [x] Competition Entity (League/Cup)
+- [x] Create/Get/Update/Delete
+- [x] Validation and uniqueness rules
+- [x] PostgreSQL persistence
+- [x] Carter API
+- [x] Domain and integration tests
+- [x] EF Core migration and designer metadata
 
-### Current Order
-1. Competition domain model
-2. Competition CRUD
-3. Season domain model
-4. Competition → Seasons relationship
-5. Integration/API coverage
+### Season
+- [x] Season Entity
+- [x] Competition → Seasons relationship
+- [x] Date-range validation
+- [x] Unique season name within competition
+- [x] Create/Get/Update/Delete
+- [x] PostgreSQL persistence and EF migration
+- [x] Carter API
+- [x] Integration coverage
+- [x] Full suite verified: **51 passed, 0 failed, 0 skipped**
 
 ---
 
-## Sprint 4 — Matches & Results
-**Status:** Planned
+## Sprint 4 — Matches & Results 🚧
+**Status:** In Progress
 
+### Initial Scope
 - Match Entity
-- MatchResult Value Object
-- Scheduling logic
+- Competition Season relationship
 - Home/Away Team relationships
-- Score tracking
+- Kickoff date/time
+- Match Status
+- MatchResult / Score model
+- Scheduling and domain validation
+- CRUD APIs
+- Unit/domain and PostgreSQL integration tests
+
+### Current Order
+1. Match domain model
+2. Match result/status model
+3. Application operations
+4. PostgreSQL persistence
+5. API endpoints
+6. Integration test coverage
 
 ---
 
