@@ -144,22 +144,28 @@ Match
 - [x] Implement `FootballDataOrgProvider`.
 - [x] Register provider options and typed HTTP client.
 - [x] Map provider competitions, teams and matches into provider-neutral external records.
-- [x] Merge provider work into `main`.
-- [x] Current verification: **65 passed, 0 failed, 0 skipped**.
+- [x] Add deterministic provider adapter tests using fake HTTP handlers and JSON fixtures.
+- [x] Introduce persistent external identity for provider/entity/external-id mapping.
+- [x] Add database uniqueness for `(Provider, EntityType, ExternalId)`.
+- [x] Add external identity repository abstraction and PostgreSQL implementation.
+- [x] Merge Sprint 5 work into `main`.
+- [x] Current verification: **76 passed, 0 failed, 0 skipped**.
+
+### Current Task
+- [ ] Implement the first application-level Team import/mapping service.
+- [ ] Make Team synchronization idempotent using ExternalIdentity.
+- [ ] Add unit and integration coverage for create/update/repeated-import scenarios.
 
 ### Next Stories
-- [ ] Add deterministic provider adapter tests with fixtures/fake HTTP handlers.
-- [ ] Introduce persistent external identity for Competition, Season, Team and Match.
-- [ ] Add uniqueness for provider + entity type + external identifier.
-- [ ] Implement import/mapping application services.
-- [ ] Implement idempotent upsert/synchronization.
+- [ ] Extend import to Competition and Season.
+- [ ] Extend import to Match.
 - [ ] Define import validation and partial-failure handling.
 - [ ] Define retry/backoff and provider error classification.
 - [ ] Add end-to-end import integration coverage.
 - [ ] Evaluate background job scheduling after synchronous import is stable.
 
 ### Sprint Outcome So Far
-The external provider boundary is now in place, but persistent external identity and the actual import workflow are intentionally still pending.
+The external provider boundary, deterministic adapter tests, and persistent external identity are complete. The remaining core Sprint 5 work is the idempotent application-level import/synchronization workflow.
 
 ---
 
