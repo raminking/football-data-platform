@@ -10,6 +10,12 @@ public class TeamConfiguration : IEntityTypeConfiguration<Team>
     {
         builder.HasKey(team => team.Id);
 
+        builder.Property(team => team.LogoUrl)
+            .HasMaxLength(2048);
+
+        builder.Property(team => team.OfficialWebsiteUrl)
+            .HasMaxLength(2048);
+
         builder
             .HasIndex(team => new { team.Name, team.Country })
             .IsUnique();

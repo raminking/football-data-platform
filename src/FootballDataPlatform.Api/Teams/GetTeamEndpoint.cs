@@ -15,10 +15,7 @@ public sealed class GetTeamModule : ICarterModule
                 CancellationToken cancellationToken) =>
             {
                 var query = new GetTeamQuery(id);
-
-                var team = await sender.Send(
-                    query,
-                    cancellationToken);
+                var team = await sender.Send(query, cancellationToken);
 
                 if (team is null)
                     return Results.NotFound();
@@ -26,7 +23,9 @@ public sealed class GetTeamModule : ICarterModule
                 var response = new GetTeamResponse(
                     team.Id,
                     team.Name,
-                    team.Country);
+                    team.Country,
+                    team.LogoUrl,
+                    team.OfficialWebsiteUrl);
 
                 return Results.Ok(response);
             })
