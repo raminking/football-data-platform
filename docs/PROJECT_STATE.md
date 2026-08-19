@@ -3,7 +3,7 @@
 > Compact source of truth for continuing the project across sessions.
 
 ## Current Milestone
-**Sprint 5 — External Data Import: Provider boundary and first provider adapter completed.**
+**Sprint 5 — External Data Import: provider boundary, adapter tests, and persistent external identity completed.**
 
 ## Completed Milestones
 ### Teams ✅
@@ -26,7 +26,7 @@
 - Carter API endpoints and contracts.
 - PostgreSQL migration and EF model metadata.
 
-### Sprint 5 — External Data Provider Boundary ✅
+### Sprint 5 — External Data Provider Boundary & Identity ✅
 - Provider-independent `IFootballDataProvider` abstraction in Application.
 - Provider DTOs kept inside Infrastructure.
 - First provider selected: `football-data.org`.
@@ -35,22 +35,27 @@
 - Provider options/configuration added.
 - API token configuration supported through configuration/user-secrets rather than committed secrets.
 - Provider failures are surfaced as HTTP request exceptions at the Infrastructure boundary.
+- Deterministic provider adapter tests added using fake HTTP handlers and JSON fixtures.
+- Persistent `ExternalIdentity` support added for provider/entity/external-id mapping.
+- Unique `(Provider, EntityType, ExternalId)` constraint added through EF Core migration.
+- External identity repository abstraction and PostgreSQL implementation registered in DI.
 - Changes merged into `main`.
 
 ## Current Verification
-Latest local verification after the provider adapter work:
-- **65 passed**
+Latest local verification:
+- **76 passed**
 - **0 failed**
 - **0 skipped**
-- **65 total**
+- **76 total**
 
-Build is currently green. The test suite remains the baseline gate for continuing work.
+Build and test suite are green. The 76-test baseline is the gate for continuing work.
 
 ## Current Git State
 - `main` is the single source of truth.
-- Feature/sprint branches used during the provider work have been removed.
-- Latest `main` merge commit: `2a28696` (`merge: football-data.org provider adapter`).
-- Working tree is clean and `main` is synchronized with `origin/main`.
+- Feature/test branches used during Sprint 5 have been removed.
+- Latest `main` commit: `d4256f1` (`feat: persist external identities`).
+- `origin/main` is synchronized with local `main`.
+- Working tree is clean.
 
 ## External Provider Boundary
 ```text
@@ -63,6 +68,8 @@ IFootballDataProvider
 ExternalCompetition / ExternalTeam / ExternalMatch
        ↓
 Import / Mapping layer
+       ↓
+ExternalIdentity
        ↓
 Domain + Persistence
 ```
@@ -77,23 +84,38 @@ IFootballDataProvider
 └── GetMatchesAsync(competitionCode, seasonYear)
 ```
 
-The current provider adapter maps external identifiers to provider-neutral external records. Persistent external identity and idempotent synchronization are not implemented yet.
+The provider adapter now maps external identifiers to provider-neutral external records. Persistent external identity is implemented. The actual import/upsert workflow is the next milestone.
+
+## External Identity Boundary
+```text
+ExternalIdentity
+├── Provider
+├── EntityType
+├── ExternalId
+└── EntityId
+```
+
+The database enforces uniqueness for `(Provider, EntityType, ExternalId)`. External identifiers remain integration identities and do not become domain primary keys.
+
+## Current Task
+Build the first application-level import workflow, starting with Team synchronization. The import service must resolve external identity, create or update the internal Team, persist the identity mapping, and remain idempotent across repeated imports.
 
 ## Next Exact Steps — Sprint 5
-1. Add provider fixture/adapter tests to the test project and verify the count increases beyond the current 65-test baseline.
-2. Introduce persistent external identity for Team, Competition, Season and Match.
-3. Define uniqueness around provider + entity type + external identifier.
-4. Build import/mapping application services.
-5. Implement idempotent upsert/synchronization.
-6. Add validation, partial-failure handling and retry strategy.
-7. Add end-to-end integration coverage using fixtures/mocks.
+1. Implement Team import/mapping application service.
+2. Add idempotent create/update behavior through `ExternalIdentity`.
+3. Add unit tests for create, update and repeated-import scenarios.
+4. Add integration coverage for persistence and uniqueness behavior.
+5. Extend the import workflow to Competition, Season and Match.
+6. Define validation, partial-failure handling and retry/backoff strategy.
+7. Add end-to-end import integration coverage using provider fixtures/mocks.
 8. Only after synchronous import is stable, evaluate background scheduling.
 
 ## Important Boundary Decisions
 - `main` is the only source of truth for project continuation.
 - Provider DTOs stay in Infrastructure.
-- Application owns the provider abstraction; Infrastructure owns provider implementations.
+- Application owns provider and persistence abstractions; Infrastructure owns implementations.
 - External identifiers must not become domain primary keys.
+- External identity is unique by provider + entity type + external identifier.
 - Import must be idempotent before scheduling is introduced.
 - Do not add advanced match/event modelling merely to mirror a provider response.
 
@@ -102,6 +124,7 @@ The current provider adapter maps external identifiers to provider-neutral exter
 - Competition-to-Team relationships remain deferred except where required by Match relationships.
 - Optimistic concurrency, soft delete and other advanced production concerns remain deferred until justified.
 - Provider rate limiting/backoff and richer error classification remain to be designed as part of the import workflow.
+- Season external identity must be resolved as part of the import workflow even though the current provider abstraction exposes seasons through competition/season context rather than a separate `GetSeasonsAsync` operation.
 
 ## Session Protocol
 ```bash
