@@ -45,7 +45,7 @@ A production-oriented project foundation was established.
 - PostgreSQL persistence with EF Core.
 - Testcontainers PostgreSQL integration tests.
 
-### Verification
+### Historical Verification
 - **27 passed, 0 failed, 0 skipped**
 
 ### Deferred / Future Improvements
@@ -72,7 +72,7 @@ A production-oriented project foundation was established.
 - [x] **Carter API.**
 - [x] **Domain/Application/integration coverage.**
 
-### Verification
+### Historical Verification
 - **51 passed, 0 failed, 0 skipped**
 
 ---
@@ -119,7 +119,7 @@ Match
 └── Result
 ```
 
-### Verification
+### Historical Verification
 - **59 passed, 0 failed, 0 skipped**
 
 ### Deliberately Deferred
@@ -133,19 +133,33 @@ Match
 
 ## Sprint 5: External Data Import
 
-**Status: 🚧 Next**
+**Status: 🚧 In progress**
 
-**Goal:** Introduce a production-oriented external football-data ingestion boundary without coupling providers directly to the domain.
+**Goal:** Introduce a production-oriented external football-data ingestion boundary without coupling providers directly to the domain, then build safe idempotent synchronization.
 
-### Planned Stories
-- [ ] Select first external football-data provider.
-- [ ] Define provider adapter abstraction.
-- [ ] Create provider-specific DTOs.
-- [ ] Map provider data into internal Team/Competition/Season/Match models.
-- [ ] Add validation and idempotent synchronization.
-- [ ] Define import error handling and retry strategy.
-- [ ] Add provider fixture/mocked integration tests.
+### Completed Stories
+- [x] Select first external football-data provider: `football-data.org`.
+- [x] Define provider-independent `IFootballDataProvider` abstraction.
+- [x] Create provider-specific DTOs inside Infrastructure.
+- [x] Implement `FootballDataOrgProvider`.
+- [x] Register provider options and typed HTTP client.
+- [x] Map provider competitions, teams and matches into provider-neutral external records.
+- [x] Merge provider work into `main`.
+- [x] Current verification: **65 passed, 0 failed, 0 skipped**.
+
+### Next Stories
+- [ ] Add deterministic provider adapter tests with fixtures/fake HTTP handlers.
+- [ ] Introduce persistent external identity for Competition, Season, Team and Match.
+- [ ] Add uniqueness for provider + entity type + external identifier.
+- [ ] Implement import/mapping application services.
+- [ ] Implement idempotent upsert/synchronization.
+- [ ] Define import validation and partial-failure handling.
+- [ ] Define retry/backoff and provider error classification.
+- [ ] Add end-to-end import integration coverage.
 - [ ] Evaluate background job scheduling after synchronous import is stable.
+
+### Sprint Outcome So Far
+The external provider boundary is now in place, but persistent external identity and the actual import workflow are intentionally still pending.
 
 ---
 
