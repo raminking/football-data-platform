@@ -47,7 +47,7 @@ public sealed class CompetitionImportServiceIntegrationTests
         Assert.Equal(competition.Id, identity.InternalEntityId);
 
         provider.SetCompetitions(
-            new ExternalCompetition("2021", "Premier League", "PL", "England").WithName("Premier League Updated"));
+            new ExternalCompetition("2021", "Premier League Updated", "PL", "England"));
 
         var secondResult = await importService.ImportAsync();
 
