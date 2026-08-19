@@ -1,10 +1,9 @@
-
-
 using FootballDataPlatform.Application.Abstractions.ExternalData;
 using FootballDataPlatform.Application.Abstractions.Persistence;
 using FootballDataPlatform.Infrastructure.ExternalData.FootballDataOrg;
 using FootballDataPlatform.Infrastructure.Persistence;
 using FootballDataPlatform.Infrastructure.Persistence.Competitions;
+using FootballDataPlatform.Infrastructure.Persistence.ExternalData;
 using FootballDataPlatform.Infrastructure.Persistence.Match;
 using FootballDataPlatform.Infrastructure.Persistence.Teams;
 using Microsoft.EntityFrameworkCore;
@@ -20,8 +19,6 @@ public static class DependencyInjection
         this IServiceCollection services,
         IConfiguration configuration)
     {
-      
-        
         services.AddDbContext<FootballDataDbContext>(options =>
             options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
 
@@ -29,8 +26,7 @@ public static class DependencyInjection
         services.AddScoped<ICompetitionRepository, CompetitionRepository>();
         services.AddScoped<ISeasonRepository, SeasonRepository>();
         services.AddScoped<IMatchRepository, MatchRepository>();
-        
-        
+        services.AddScoped<IExternalIdentityRepository, ExternalIdentityRepository>();
 
         services
             .AddOptions<FootballDataOrgOptions>()
