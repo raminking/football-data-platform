@@ -148,24 +148,28 @@ Match
 - [x] Introduce persistent external identity for provider/entity/external-id mapping.
 - [x] Add database uniqueness for `(Provider, EntityType, ExternalId)`.
 - [x] Add external identity repository abstraction and PostgreSQL implementation.
-- [x] Merge Sprint 5 work into `main`.
-- [x] Current verification: **76 passed, 0 failed, 0 skipped**.
+- [x] Implement Team import/mapping application service.
+- [x] Implement idempotent Team synchronization using ExternalIdentity.
+- [x] Add Team import unit coverage.
+- [x] Add PostgreSQL integration coverage for Team persistence and repeated imports.
+- [x] Verify current suite: **81 passed, 0 failed, 0 skipped**.
 
 ### Current Task
-- [ ] Implement the first application-level Team import/mapping service.
-- [ ] Make Team synchronization idempotent using ExternalIdentity.
-- [ ] Add unit and integration coverage for create/update/repeated-import scenarios.
+- [ ] Add an integration test proving duplicate ExternalIdentity persistence is rejected by the database constraint.
+- [ ] Review Team import transaction/error behavior and partial-failure semantics.
 
 ### Next Stories
-- [ ] Extend import to Competition and Season.
+- [ ] Implement Competition import/mapping service.
+- [ ] Implement Competition create/update/idempotency unit and integration coverage.
+- [ ] Implement Season import/mapping, including Competition relationship resolution.
 - [ ] Extend import to Match.
-- [ ] Define import validation and partial-failure handling.
+- [ ] Define validation and partial-failure handling.
 - [ ] Define retry/backoff and provider error classification.
 - [ ] Add end-to-end import integration coverage.
-- [ ] Evaluate background job scheduling after synchronous import is stable.
+- [ ] Evaluate background job scheduling only after synchronous import is stable.
 
 ### Sprint Outcome So Far
-The external provider boundary, deterministic adapter tests, and persistent external identity are complete. The remaining core Sprint 5 work is the idempotent application-level import/synchronization workflow.
+The provider boundary, deterministic adapter tests, persistent external identity, and first idempotent Team synchronization workflow are complete. Sprint 5 is now moving from Team synchronization hardening to Competition and Season synchronization.
 
 ---
 
