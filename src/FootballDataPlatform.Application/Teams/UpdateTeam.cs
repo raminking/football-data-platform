@@ -8,8 +8,8 @@ public record UpdateTeamCommand(
     Guid Id,
     string Name,
     string Country,
-    string? LogoUrl,
-    string? OfficialWebsiteUrl) : IRequest<Result<Guid>>;
+    string? LogoUrl = null,
+    string? OfficialWebsiteUrl = null) : IRequest<Result<Guid>>;
 
 internal class UpdateTeamHandler(ITeamRepository repository) : IRequestHandler<UpdateTeamCommand, Result<Guid>>
 {
@@ -30,11 +30,7 @@ internal class UpdateTeamHandler(ITeamRepository repository) : IRequestHandler<U
 
         try
         {
-            team.UpdateDetails(
-                command.Name,
-                command.Country,
-                command.LogoUrl,
-                command.OfficialWebsiteUrl);
+            team.UpdateDetails(command.Name, command.Country, command.LogoUrl, command.OfficialWebsiteUrl);
         }
         catch (ArgumentException ex)
         {
