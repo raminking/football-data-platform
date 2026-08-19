@@ -8,8 +8,8 @@ namespace FootballDataPlatform.Application.Teams;
 public record CreateTeamCommand(
     string Name,
     string Country,
-    string? LogoUrl,
-    string? OfficialWebsiteUrl) : IRequest<Result<Guid>>;
+    string? LogoUrl = null,
+    string? OfficialWebsiteUrl = null) : IRequest<Result<Guid>>;
 
 internal class CreateTeamHandler(ITeamRepository repository) : IRequestHandler<CreateTeamCommand, Result<Guid>>
 {
@@ -29,12 +29,7 @@ internal class CreateTeamHandler(ITeamRepository repository) : IRequestHandler<C
 
         try
         {
-            var team = new Team(
-                name,
-                country,
-                command.LogoUrl,
-                command.OfficialWebsiteUrl);
-
+            var team = new Team(name, country, command.LogoUrl, command.OfficialWebsiteUrl);
             await repository.CreateAsync(team, ct);
             return Result<Guid>.Success(team.Id);
         }
