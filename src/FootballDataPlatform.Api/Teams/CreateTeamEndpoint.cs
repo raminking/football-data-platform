@@ -16,20 +16,17 @@ public sealed class CreateTeamModule : ICarterModule
             {
                 var command = new CreateTeamCommand(
                     request.Name,
-                    request.Country);
+                    request.Country,
+                    request.LogoUrl,
+                    request.OfficialWebsiteUrl);
 
-                var result = await sender.Send(
-                    command,
-                    cancellationToken);
+                var result = await sender.Send(command, cancellationToken);
 
                 if (!result.IsSuccess)
                     return Results.BadRequest(result.Error);
 
                 var response = new CreateTeamResponse(result.Value);
-
-                return Results.Created(
-                    $"/teams/{result.Value}",
-                    response);
+                return Results.Created($"/teams/{result.Value}", response);
             })
             .WithName("CreateTeam")
             .WithTags("Teams")
