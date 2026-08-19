@@ -1,5 +1,5 @@
-using FootballDataPlatform.Application.Teams;
 using Carter;
+using FootballDataPlatform.Application.Teams;
 using MediatR;
 
 namespace FootballDataPlatform.Api.Teams;
@@ -22,7 +22,7 @@ public sealed class UpdateTeamModule : ICarterModule
             })
             .WithName("UpdateTeam")
             .WithTags("Teams")
-            .WithSummary("Update a  team")
+            .WithSummary("Update a team")
             .Produces(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status400BadRequest);
     }
