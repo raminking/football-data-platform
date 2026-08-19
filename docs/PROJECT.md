@@ -24,21 +24,22 @@ Current Sprint:
 
 Completed milestones:
 
+- **Sprint 1 – Foundation**
 - **Sprint 2 – Teams Module**
 - **Sprint 3 – Competitions & Seasons**
 - **Sprint 4 – Matches & Results**
+- **Sprint 5 – Provider Boundary + first football-data.org adapter**
 
 Latest verified suite:
 
-**59 passed, 0 failed, 0 skipped**
+**65 passed, 0 failed, 0 skipped**
 
 Current focus:
 
-- Select and document the first external football-data provider
-- Establish a provider-independent adapter boundary
+- Add deterministic provider adapter tests
+- Introduce persistent external identity for imported entities
+- Design idempotent synchronization before background scheduling
 - Keep provider DTOs separate from internal domain models
-- Map external Team, Competition, Season and Match data into the internal model
-- Design validation, idempotency and error handling before background scheduling
 
 The current domain baseline is documented in `docs/DOMAIN_MODEL.md`.
 
@@ -57,6 +58,28 @@ Match
 ```
 
 A Match belongs to a specific Season rather than directly to Competition. This allows the same Team to participate in different competitions and seasons without coupling Match directly to Competition.
+
+---
+
+## External Data Boundary
+
+```text
+football-data.org
+      ↓
+FootballDataOrgProvider
+      ↓
+IFootballDataProvider
+      ↓
+Provider-neutral external records
+      ↓
+Import / mapping layer
+      ↓
+Domain + persistence
+```
+
+Provider-specific DTOs remain in Infrastructure and do not leak into Domain or API contracts.
+
+The provider adapter currently supports competitions, teams and matches. Persistent external identity and idempotent import are not implemented yet.
 
 ---
 
@@ -87,14 +110,15 @@ Testing
 
 - xUnit
 - Testcontainers PostgreSQL integration tests
+- Current suite: **65 passed, 0 failed, 0 skipped**
 
 Planned / Future
 
-- External football-data provider integration
+- External identity and idempotent import
 - Background Jobs
 - Docker
 - Authentication
-- CI/CD
+- CI/CD improvements
 - Structured Logging
 - Caching
 - Observability
@@ -114,6 +138,7 @@ This project follows:
 - Explicit domain invariants
 - Testable application boundaries
 - Provider isolation
+- Idempotent ingestion before scheduling
 
 The MVP intentionally avoids premature modelling of competition formats, groups, qualification rules and detailed match events.
 
