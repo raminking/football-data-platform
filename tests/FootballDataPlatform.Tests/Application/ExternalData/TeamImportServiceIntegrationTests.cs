@@ -1,6 +1,7 @@
 using FootballDataPlatform.Application.Abstractions.ExternalData;
 using FootballDataPlatform.Application.ExternalData;
 using FootballDataPlatform.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
