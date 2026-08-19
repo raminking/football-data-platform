@@ -8,7 +8,7 @@ using FootballDataPlatform.Infrastructure.Persistence;
 
 namespace FootballDataPlatform.Tests;
 
-public sealed class CustomWebApplicationFactory
+public class CustomWebApplicationFactory
     : WebApplicationFactory<Program>
 {
     private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder()
