@@ -3,13 +3,17 @@
 > Compact source of truth for continuing the project across sessions.
 
 ## Current Milestone
-**Sprint 5 — External Data Import: provider boundary, adapter tests, and persistent external identity completed.**
+**Sprint 5 — External Data Import: Team synchronization completed with idempotent persistence and PostgreSQL integration coverage.**
 
 ## Completed Milestones
 ### Teams ✅
 - Teams CRUD, domain/application tests, Carter API, PostgreSQL persistence and Testcontainers integration coverage.
 - Team metadata support has been introduced for the current requirements.
 - Current Team domain remains intentionally focused on core identity plus supported metadata.
+- Application-level Team import service implemented.
+- Team import resolves provider external identity and creates or updates the internal Team.
+- Repeated imports are idempotent.
+- PostgreSQL integration coverage verifies Team persistence and ExternalIdentity persistence across repeated imports.
 
 ### Competitions & Seasons ✅
 - Competition CRUD, validation, repository, PostgreSQL persistence, Carter API, EF migration and integration coverage.
@@ -26,7 +30,7 @@
 - Carter API endpoints and contracts.
 - PostgreSQL migration and EF model metadata.
 
-### Sprint 5 — External Data Provider Boundary & Identity ✅
+### Sprint 5 — External Data Provider & Import ✅/🚧
 - Provider-independent `IFootballDataProvider` abstraction in Application.
 - Provider DTOs kept inside Infrastructure.
 - First provider selected: `football-data.org`.
@@ -39,21 +43,25 @@
 - Persistent `ExternalIdentity` support added for provider/entity/external-id mapping.
 - Unique `(Provider, EntityType, ExternalId)` constraint added through EF Core migration.
 - External identity repository abstraction and PostgreSQL implementation registered in DI.
-- Changes merged into `main`.
+- Team import service implemented and registered in DI.
+- Team import unit coverage added.
+- Team import PostgreSQL integration coverage added.
+- Repeated Team import verified as idempotent: existing external identity is reused and the Team is updated without creating duplicates.
+- Changes are merged into `main`.
 
 ## Current Verification
 Latest local verification:
-- **76 passed**
+- **81 passed**
 - **0 failed**
 - **0 skipped**
-- **76 total**
+- **81 total**
 
-Build and test suite are green. The 76-test baseline is the gate for continuing work.
+Build and full test suite are green. The 81-test baseline is the current gate for continuing work.
 
 ## Current Git State
 - `main` is the single source of truth.
 - Feature/test branches used during Sprint 5 have been removed.
-- Latest `main` commit: `d4256f1` (`feat: persist external identities`).
+- Latest `main` commit: `e00b7dc` (`fix: import ef core async test extensions`).
 - `origin/main` is synchronized with local `main`.
 - Working tree is clean.
 
@@ -84,7 +92,29 @@ IFootballDataProvider
 └── GetMatchesAsync(competitionCode, seasonYear)
 ```
 
-The provider adapter now maps external identifiers to provider-neutral external records. Persistent external identity is implemented. The actual import/upsert workflow is the next milestone.
+The provider adapter maps external identifiers to provider-neutral external records. Persistent external identity and the first Team import/upsert workflow are implemented.
+
+## Team Import Workflow
+```text
+IFootballDataProvider
+       ↓
+TeamImportService
+       ↓
+Find ExternalIdentity
+   ┌───┴───┐
+   │       │
+ found   missing
+   │       │
+ update  create Team
+   │       │
+   └───┬───┘
+       ↓
+Persist ExternalIdentity
+       ↓
+PostgreSQL
+```
+
+The workflow is idempotent for repeated imports of the same provider external identifier.
 
 ## External Identity Boundary
 ```text
@@ -98,17 +128,18 @@ ExternalIdentity
 The database enforces uniqueness for `(Provider, EntityType, ExternalId)`. External identifiers remain integration identities and do not become domain primary keys.
 
 ## Current Task
-Build the first application-level import workflow, starting with Team synchronization. The import service must resolve external identity, create or update the internal Team, persist the identity mapping, and remain idempotent across repeated imports.
+Strengthen the import persistence boundary, then extend the same application-level synchronization pattern to Competition and Season.
 
 ## Next Exact Steps — Sprint 5
-1. Implement Team import/mapping application service.
-2. Add idempotent create/update behavior through `ExternalIdentity`.
-3. Add unit tests for create, update and repeated-import scenarios.
-4. Add integration coverage for persistence and uniqueness behavior.
-5. Extend the import workflow to Competition, Season and Match.
-6. Define validation, partial-failure handling and retry/backoff strategy.
-7. Add end-to-end import integration coverage using provider fixtures/mocks.
-8. Only after synchronous import is stable, evaluate background scheduling.
+1. Add an integration test proving duplicate ExternalIdentity persistence is rejected by the database constraint.
+2. Review Team import transaction/error behavior and partial-failure semantics.
+3. Implement Competition import/mapping application service.
+4. Add Competition create/update/idempotency unit and integration coverage.
+5. Implement Season import/mapping, resolving its Competition relationship and external identity.
+6. Add validation, partial-failure handling and provider error classification.
+7. Extend the workflow to Match after Competition/Season synchronization is stable.
+8. Add end-to-end import integration coverage using provider fixtures/mocks.
+9. Only after synchronous import is stable, evaluate background scheduling and retry/backoff.
 
 ## Important Boundary Decisions
 - `main` is the only source of truth for project continuation.
