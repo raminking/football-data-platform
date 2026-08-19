@@ -15,6 +15,7 @@ public static class DependencyInjection
                 typeof(DependencyInjection).Assembly));
 
         services.AddScoped<ITeamImportService, TeamImportService>();
+        services.AddScoped<ICompetitionImportService, CompetitionImportService>();
 
         return services;
     }
