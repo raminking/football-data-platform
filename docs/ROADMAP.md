@@ -122,21 +122,27 @@ The Sprint 4 baseline was **59 passed, 0 failed, 0 skipped**. The current reposi
 - [x] Implement `FootballDataOrgProvider`
 - [x] Register provider options and typed HTTP client
 - [x] Map provider competitions, teams and matches into provider-neutral external records
-- [x] Merge provider adapter work into `main`
-- [x] Verify current suite: **65 passed, 0 failed, 0 skipped**
+- [x] Add deterministic provider adapter tests with fake HTTP handlers and fixtures
+- [x] Introduce persistent external identity for provider/entity/external-id mapping
+- [x] Add uniqueness for provider + entity type + external identifier
+- [x] Add external identity repository abstraction and PostgreSQL implementation
+- [x] Verify current suite: **76 passed, 0 failed, 0 skipped**
+
+### Current Focus
+- [ ] Implement Team import/mapping application service
+- [ ] Implement idempotent Team upsert using ExternalIdentity
+- [ ] Add unit and integration coverage for repeated imports
 
 ### Next
-- [ ] Add deterministic provider adapter tests using fixtures/fake HTTP handlers
-- [ ] Introduce persistent external identity for Competition, Season, Team and Match
-- [ ] Add uniqueness for provider + entity type + external identifier
-- [ ] Implement import/mapping application services
-- [ ] Implement idempotent upsert/synchronization
-- [ ] Define validation, partial-failure handling and retry/backoff
+- [ ] Extend import to Competition and Season
+- [ ] Extend import to Match
+- [ ] Define validation and partial-failure handling
+- [ ] Define retry/backoff and provider error classification
 - [ ] Add end-to-end import integration coverage
 - [ ] Evaluate background scheduling only after synchronous import is stable
 
 ### Engineering Focus
-The import layer must not leak provider-specific models into the domain. Provider changes should be isolated behind an adapter boundary. External identifiers must not become domain primary keys, and idempotency must be established before background scheduling.
+The import layer must not leak provider-specific models into the domain. Provider changes should be isolated behind an adapter boundary. External identifiers must not become domain primary keys. The external identity uniqueness constraint provides the persistence-level foundation for idempotent synchronization.
 
 ---
 
