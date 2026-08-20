@@ -2,7 +2,6 @@ using FootballDataPlatform.Application.Abstractions.ExternalData;
 using FootballDataPlatform.Application.Abstractions.Persistence;
 using FootballDataPlatform.Application.ExternalData;
 using FootballDataPlatform.Domain.Competitions;
-using FootballDataPlatform.Domain.Competitions;
 using FootballDataPlatform.Domain.Match;
 using FootballDataPlatform.Domain.Teams;
 using Moq;
