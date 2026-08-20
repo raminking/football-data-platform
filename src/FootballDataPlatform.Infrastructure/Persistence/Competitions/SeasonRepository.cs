@@ -9,8 +9,8 @@ public class SeasonRepository(FootballDataDbContext db) : ISeasonRepository
     public Task<bool> CompetitionExistsAsync(Guid competitionId, CancellationToken cancellationToken) =>
         db.Competitions.AnyAsync(x => x.Id == competitionId, cancellationToken);
 
-    public Task<bool> ExistsByIdentityAsync(Guid competitionId, string name, CancellationToken cancellationToken) =>
-        db.Seasons.AnyAsync(x => x.CompetitionId == competitionId && x.Name == name, cancellationToken);
+    public Task<bool> ExistsByIdentityAsync(Guid competitionId, string name, Guid? excludeId, CancellationToken cancellationToken) =>
+        db.Seasons.AnyAsync(x => x.CompetitionId == competitionId && x.Name == name && x.Id != excludeId, cancellationToken);
 
     public async Task CreateAsync(Season season, CancellationToken cancellationToken)
     {
