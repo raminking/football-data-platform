@@ -1,7 +1,7 @@
 namespace FootballDataPlatform.Contracts.Teams;
 
 public sealed record GetTeamResponse(
-    Guid Id,
+    Guid PublicId,
     string Name,
     string Country,
     string? LogoUrl,
