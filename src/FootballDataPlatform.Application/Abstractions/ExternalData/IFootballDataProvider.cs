@@ -7,6 +7,10 @@ public interface IFootballDataProvider
     Task<IReadOnlyCollection<ExternalCompetition>> GetCompetitionsAsync(
         CancellationToken cancellationToken = default);
 
+    Task<IReadOnlyCollection<ExternalSeason>> GetSeasonsAsync(
+        string competitionCode,
+        CancellationToken cancellationToken = default);
+
     Task<IReadOnlyCollection<ExternalTeam>> GetTeamsAsync(
         string competitionCode,
         int seasonYear,
@@ -23,6 +27,13 @@ public sealed record ExternalCompetition(
     string Name,
     string? Code,
     string? Country);
+
+public sealed record ExternalSeason(
+    string ExternalId,
+    string CompetitionExternalId,
+    string Name,
+    DateOnly StartDate,
+    DateOnly EndDate);
 
 public sealed record ExternalTeam(
     string ExternalId,
