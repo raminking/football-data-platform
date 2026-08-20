@@ -5,7 +5,7 @@ using Microsoft.Extensions.Options;
 
 namespace FootballDataPlatform.Infrastructure.ExternalData.FootballDataOrg;
 
-public sealed class FootballDataOrgProvider : IFootballDataProvider
+public sealed class FootballDataOrgProvider : IFootballDataSource
 {
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
     private readonly HttpClient _httpClient;
@@ -21,7 +21,7 @@ public sealed class FootballDataOrgProvider : IFootballDataProvider
         }
     }
 
-    public string ProviderName => "football-data.org";
+    public string SourceKey => "football-data.org";
 
     public async Task<IReadOnlyCollection<ExternalCompetition>> GetCompetitionsAsync(CancellationToken cancellationToken = default)
     {
@@ -35,41 +35,28 @@ public sealed class FootballDataOrgProvider : IFootballDataProvider
     public async Task<IReadOnlyCollection<ExternalSeason>> GetSeasonsAsync(string competitionCode, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(competitionCode);
-
         var path = $"v4/competitions/{Uri.EscapeDataString(competitionCode)}";
         var response = await GetAsync<CompetitionDetailDto>(path, cancellationToken);
-
         return response.Seasons
             .Where(x => x.Id > 0 && x.StartDate != default && x.EndDate != default && x.EndDate >= x.StartDate)
-            .Select(x => new ExternalSeason(
-                x.Id.ToString(),
-                response.Id.ToString(),
-                BuildSeasonName(x.StartDate, x.EndDate),
-                x.StartDate,
-                x.EndDate))
+            .Select(x => new ExternalSeason(x.Id.ToString(), response.Id.ToString(), BuildSeasonName(x.StartDate, x.EndDate), x.StartDate, x.EndDate))
             .ToArray();
     }
 
     public async Task<IReadOnlyCollection<ExternalTeam>> GetTeamsAsync(string competitionCode, int seasonYear, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(competitionCode);
-        if (seasonYear <= 0)
-            throw new ArgumentOutOfRangeException(nameof(seasonYear), "Season year must be greater than zero.");
-
+        if (seasonYear <= 0) throw new ArgumentOutOfRangeException(nameof(seasonYear), "Season year must be greater than zero.");
         var path = $"v4/competitions/{Uri.EscapeDataString(competitionCode)}/teams?season={seasonYear}";
         var response = await GetAsync<TeamResponse>(path, cancellationToken);
-        return response.Teams
-            .Where(x => x.Id > 0 && !string.IsNullOrWhiteSpace(x.Name))
-            .Select(x => new ExternalTeam(x.Id.ToString(), x.Name, x.Area?.Name))
-            .ToArray();
+        return response.Teams.Where(x => x.Id > 0 && !string.IsNullOrWhiteSpace(x.Name))
+            .Select(x => new ExternalTeam(x.Id.ToString(), x.Name, x.Area?.Name)).ToArray();
     }
 
     public async Task<IReadOnlyCollection<ExternalMatch>> GetMatchesAsync(string competitionCode, int seasonYear, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(competitionCode);
-        if (seasonYear <= 0)
-            throw new ArgumentOutOfRangeException(nameof(seasonYear), "Season year must be greater than zero.");
-
+        if (seasonYear <= 0) throw new ArgumentOutOfRangeException(nameof(seasonYear), "Season year must be greater than zero.");
         var path = $"v4/competitions/{Uri.EscapeDataString(competitionCode)}/matches?season={seasonYear}";
         var response = await GetAsync<MatchResponse>(path, cancellationToken);
         return response.Matches.Where(IsValidMatch).Select(MapMatch).ToArray();
@@ -83,7 +70,6 @@ public sealed class FootballDataOrgProvider : IFootballDataProvider
             var body = await response.Content.ReadAsStringAsync(cancellationToken);
             throw new HttpRequestException($"football-data.org request failed with status {(int)response.StatusCode} ({response.ReasonPhrase}). Response: {body}");
         }
-
         await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
         return await JsonSerializer.DeserializeAsync<T>(stream, JsonOptions, cancellationToken)
             ?? throw new InvalidOperationException($"football-data.org returned an empty response for '{relativePath}'.");
@@ -96,8 +82,6 @@ public sealed class FootballDataOrgProvider : IFootballDataProvider
         match.Id > 0 && match.Competition?.Id > 0 && match.Season?.Id > 0 && match.HomeTeam?.Id > 0 && match.AwayTeam?.Id > 0 && !string.IsNullOrWhiteSpace(match.Status);
 
     private static ExternalMatch MapMatch(MatchDto match) => new(
-        match.Id.ToString(), match.Competition!.Id.ToString(), match.Season!.Id.ToString(),
-        match.HomeTeam!.Id.ToString(), match.AwayTeam!.Id.ToString(), match.UtcDate, match.Status,
-        match.Score?.FullTime?.Home, match.Score?.FullTime?.Away,
-        match.Score?.HalfTime?.Home, match.Score?.HalfTime?.Away, match.Stage);
+        match.Id.ToString(), match.Competition!.Id.ToString(), match.Season!.Id.ToString(), match.HomeTeam!.Id.ToString(), match.AwayTeam!.Id.ToString(), match.UtcDate, match.Status,
+        match.Score?.FullTime?.Home, match.Score?.FullTime?.Away, match.Score?.HalfTime?.Home, match.Score?.HalfTime?.Away, match.Stage);
 }
