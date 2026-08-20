@@ -84,11 +84,23 @@ public sealed class SeasonImportServiceTests
     public async Task ImportAsync_WhenSeasonIsInvalid_SkipsIt()
     {
         var competition = new Competition("Premier League", "England", "PL");
-        var resolver = CreateResolver(new ExternalSeason("", "2021", "2025/26", new DateOnly(2025, 8, 15), new DateOnly(2026, 5, 24)));
+        var resolver = new Mock<IFootballDataSourceResolver>();
+        var source = new Mock<IFootballDataSource>();
+        source.SetupGet(x => x.SourceKey).Returns("football-data.org");
+        source.Setup(x => x.GetSeasonsAsync("PL", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new[] { new ExternalSeason("", "2021", "2025/26", new DateOnly(2025, 8, 15), new DateOnly(2026, 5, 24)) });
+        source.Setup(x => x.GetCompetitionsAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new[] { new ExternalCompetition("2021", "Premier League", "PL", "England") });
+        resolver.Setup(x => x.Resolve("football-data.org")).Returns(source.Object);
+
         var competitions = new Mock<ICompetitionRepository>();
         var seasons = new Mock<ISeasonRepository>();
         var identities = new Mock<IExternalIdentityRepository>();
-        SetupCompetition(competition, resolver, competitions, identities);
+        identities.Setup(x => x.FindAsync("football-data.org", "Competition", "PL", It.IsAny<CancellationToken>()))
+            .ReturnsAsync((ExternalIdentityRecord?)null);
+        identities.Setup(x => x.FindAsync("football-data.org", "Competition", "2021", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ExternalIdentityRecord("football-data.org", "Competition", "2021", competition.Id, DateTimeOffset.UtcNow));
+        competitions.Setup(x => x.GetByIdAsync(competition.Id, It.IsAny<CancellationToken>())).ReturnsAsync(competition);
 
         var service = new SeasonImportService(resolver.Object, competitions.Object, seasons.Object, identities.Object);
         var result = await service.ImportAsync("football-data.org", "PL");
