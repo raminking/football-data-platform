@@ -4,5 +4,5 @@ public sealed record ExternalIdentityRecord(
     string Provider,
     string EntityType,
     string ExternalId,
-    Guid InternalEntityId,
+    long InternalEntityId,
     DateTimeOffset CreatedAtUtc);
