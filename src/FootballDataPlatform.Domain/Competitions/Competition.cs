@@ -2,7 +2,8 @@ namespace FootballDataPlatform.Domain.Competitions;
 
 public class Competition
 {
-    public Guid Id { get; private set; }
+    public long Id { get; private set; }
+    public Guid PublicId { get; private set; }
     public string Name { get; private set; }
     public string Country { get; private set; }
     public string Code { get; private set; }
@@ -11,11 +12,13 @@ public class Competition
     {
         Validate(name, country, code);
 
-        Id = Guid.NewGuid();
+        PublicId = Guid.NewGuid();
         Name = name.Trim();
         Country = country.Trim();
         Code = code.Trim().ToUpperInvariant();
     }
+
+    private Competition() { }
 
     public void UpdateDetails(string name, string country, string code)
     {
