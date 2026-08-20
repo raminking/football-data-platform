@@ -4,6 +4,7 @@ using FootballDataPlatform.Application.ExternalData;
 using FootballDataPlatform.Domain.Competitions;
 using FootballDataPlatform.Domain.Match;
 using FootballDataPlatform.Domain.Teams;
+using FootballDataPlatform.Tests.Helpers;
 using Moq;
 using MatchEntity = FootballDataPlatform.Domain.Match.Match;
 
@@ -49,7 +50,7 @@ public sealed class MatchImportServiceTests
             fixture.AwayTeam.Id,
             DateTimeOffset.UtcNow.AddDays(-1),
             MatchStage.League,
-            MatchStatus.Scheduled);
+            MatchStatus.Scheduled).WithId(5);
 
         fixture.Identities.Setup(x => x.FindAsync(
                 "football-data.org", "Match", "match-1", It.IsAny<CancellationToken>()))
@@ -91,11 +92,11 @@ public sealed class MatchImportServiceTests
 
     private static MatchFixture CreateFixture()
     {
-        var competition = new Competition("Premier League", "England", "PL");
+        var competition = new Competition("Premier League", "England", "PL").WithId(1);
         var season = new FootballDataPlatform.Domain.Competitions.Season(
-            competition.Id, "2025/26", new DateOnly(2025, 8, 15), new DateOnly(2026, 5, 24));
-        var home = new Team("Liverpool", "England");
-        var away = new Team("Arsenal", "England");
+            competition.Id, "2025/26", new DateOnly(2025, 8, 15), new DateOnly(2026, 5, 24)).WithId(2);
+        var home = new Team("Liverpool", "England").WithId(3);
+        var away = new Team("Arsenal", "England").WithId(4);
 
         var source = new Mock<IFootballDataSource>();
         source.SetupGet(x => x.SourceKey).Returns("football-data.org");
