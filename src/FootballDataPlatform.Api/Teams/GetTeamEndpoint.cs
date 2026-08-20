@@ -9,30 +9,13 @@ public sealed class GetTeamModule : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapGet("/teams/{id:guid}", async (
-                Guid id,
-                ISender sender,
-                CancellationToken cancellationToken) =>
-            {
-                var query = new GetTeamQuery(id);
-                var team = await sender.Send(query, cancellationToken);
-
-                if (team is null)
-                    return Results.NotFound();
-
-                var response = new GetTeamResponse(
-                    team.Id,
-                    team.Name,
-                    team.Country,
-                    team.LogoUrl,
-                    team.OfficialWebsiteUrl);
-
-                return Results.Ok(response);
-            })
-            .WithName("GetTeam")
-            .WithTags("Teams")
-            .WithSummary("Get a team by its identifier")
-            .Produces<GetTeamResponse>(StatusCodes.Status200OK)
-            .Produces(StatusCodes.Status404NotFound);
+        app.MapGet("/teams/{publicId:guid}", async (Guid publicId, ISender sender, CancellationToken cancellationToken) =>
+        {
+            var team = await sender.Send(new GetTeamQuery(publicId), cancellationToken);
+            if (team is null) return Results.NotFound();
+            return Results.Ok(new GetTeamResponse(team.PublicId, team.Name, team.Country, team.LogoUrl, team.OfficialWebsiteUrl));
+        })
+        .WithName("GetTeam").WithTags("Teams").WithSummary("Get a team by its public identifier")
+        .Produces<GetTeamResponse>(StatusCodes.Status200OK).Produces(StatusCodes.Status404NotFound);
     }
 }
