@@ -12,10 +12,12 @@ builder.Services.AddCarter();
 
 builder.Services.AddInfrastructure(builder.Configuration);
 
-
 var app = builder.Build();
+
 if (app.Environment.IsDevelopment())
 {
+    await app.Services.InitializeDatabaseAsync();
+
     app.UseSwagger();
     app.UseSwaggerUI();
 }
