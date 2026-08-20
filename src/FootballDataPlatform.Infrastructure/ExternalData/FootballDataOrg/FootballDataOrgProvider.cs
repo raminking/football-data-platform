@@ -27,8 +27,8 @@ public sealed class FootballDataOrgProvider : IFootballDataSource
     {
         var response = await GetAsync<CompetitionResponse>("v4/competitions", cancellationToken);
         return response.Competitions
-            .Where(x => x.Id > 0 && !string.IsNullOrWhiteSpace(x.Name))
-            .Select(x => new ExternalCompetition(x.Id.ToString(), x.Name, x.Code, x.Area?.Name))
+            .Where(x => x.Id > 0 && !string.IsNullOrWhiteSpace(x.Name) && !string.IsNullOrWhiteSpace(x.Code))
+            .Select(x => new ExternalCompetition(x.Id.ToString(), x.Name, x.Code!, x.Area?.Name))
             .ToArray();
     }
 
