@@ -4,16 +4,13 @@ using MediatR;
 
 namespace FootballDataPlatform.Application.Match;
 
-public record DeleteMatchCommand(Guid Id) : IRequest<Result<bool>>;
-
-internal sealed class DeleteMatchHandler(IMatchRepository repository)
-    : IRequestHandler<DeleteMatchCommand, Result<bool>>
+public record DeleteMatchCommand(Guid PublicId) : IRequest<Result<bool>>;
+internal sealed class DeleteMatchHandler(IMatchRepository repository) : IRequestHandler<DeleteMatchCommand, Result<bool>>
 {
     public async Task<Result<bool>> Handle(DeleteMatchCommand command, CancellationToken ct)
     {
-        var match = await repository.GetByIdAsync(command.Id, ct);
+        var match = await repository.GetByPublicIdAsync(command.PublicId, ct);
         if (match is null) return Result<bool>.Failure("Match not found.");
-
         await repository.DeleteAsync(match, ct);
         return Result<bool>.Success(true);
     }
