@@ -23,6 +23,27 @@ internal sealed class CompetitionDto
     public AreaDto? Area { get; init; }
 }
 
+internal sealed class SeasonResponse
+{
+    [JsonPropertyName("seasons")]
+    public List<SeasonDto> Seasons { get; init; } = [];
+}
+
+internal sealed class SeasonDto
+{
+    [JsonPropertyName("id")]
+    public int Id { get; init; }
+
+    [JsonPropertyName("startDate")]
+    public DateOnly StartDate { get; init; }
+
+    [JsonPropertyName("endDate")]
+    public DateOnly EndDate { get; init; }
+
+    [JsonPropertyName("currentMatchday")]
+    public int? CurrentMatchday { get; init; }
+}
+
 internal sealed class TeamResponse
 {
     [JsonPropertyName("teams")]
@@ -65,7 +86,7 @@ internal sealed class MatchDto
     public CompetitionReferenceDto? Competition { get; init; }
 
     [JsonPropertyName("season")]
-    public SeasonDto? Season { get; init; }
+    public SeasonReferenceDto? Season { get; init; }
 
     [JsonPropertyName("homeTeam")]
     public TeamReferenceDto? HomeTeam { get; init; }
@@ -95,7 +116,7 @@ internal sealed class TeamReferenceDto
     public int Id { get; init; }
 }
 
-internal sealed class SeasonDto
+internal sealed class SeasonReferenceDto
 {
     [JsonPropertyName("id")]
     public int Id { get; init; }
