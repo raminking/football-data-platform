@@ -23,8 +23,11 @@ internal sealed class CompetitionDto
     public AreaDto? Area { get; init; }
 }
 
-internal sealed class SeasonResponse
+internal sealed class CompetitionDetailDto
 {
+    [JsonPropertyName("id")]
+    public int Id { get; init; }
+
     [JsonPropertyName("seasons")]
     public List<SeasonDto> Seasons { get; init; } = [];
 }
