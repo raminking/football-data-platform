@@ -19,7 +19,7 @@ internal sealed class CreateSeasonHandler(ISeasonRepository repository)
             return Result<Guid>.Failure("Competition not found.");
 
         var name = command.Name.Trim();
-        if (await repository.ExistsByIdentityAsync(command.CompetitionId, name, ct))
+        if (await repository.ExistsByIdentityAsync(command.CompetitionId, name, null, ct))
             return Result<Guid>.Failure("Season already exists for this competition.");
 
         var season = new Season(command.CompetitionId, name, command.StartDate, command.EndDate);
