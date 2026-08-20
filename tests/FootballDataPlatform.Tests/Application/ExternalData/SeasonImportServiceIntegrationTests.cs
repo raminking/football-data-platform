@@ -70,7 +70,8 @@ public sealed class SeasonImportServiceIntegrationTests
 
         public string ProviderName => "football-data.org";
         public void SetSeasons(params ExternalSeason[] seasons) => _seasons = seasons;
-        public Task<IReadOnlyCollection<ExternalCompetition>> GetCompetitionsAsync(CancellationToken cancellationToken = default) => Task.FromResult<IReadOnlyCollection<ExternalCompetition>>([]);
+        public Task<IReadOnlyCollection<ExternalCompetition>> GetCompetitionsAsync(CancellationToken cancellationToken = default) =>
+            Task.FromResult<IReadOnlyCollection<ExternalCompetition>>([new ExternalCompetition("2021", "Premier League", "PL", "England")]);
         public Task<IReadOnlyCollection<ExternalSeason>> GetSeasonsAsync(string competitionCode, CancellationToken cancellationToken = default) => Task.FromResult(_seasons);
         public Task<IReadOnlyCollection<ExternalTeam>> GetTeamsAsync(string competitionCode, int seasonYear, CancellationToken cancellationToken = default) => Task.FromResult<IReadOnlyCollection<ExternalTeam>>([]);
         public Task<IReadOnlyCollection<ExternalMatch>> GetMatchesAsync(string competitionCode, int seasonYear, CancellationToken cancellationToken = default) => Task.FromResult<IReadOnlyCollection<ExternalMatch>>([]);
