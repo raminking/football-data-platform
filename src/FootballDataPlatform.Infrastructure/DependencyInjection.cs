@@ -1,5 +1,6 @@
 using FootballDataPlatform.Application.Abstractions.ExternalData;
 using FootballDataPlatform.Application.Abstractions.Persistence;
+using FootballDataPlatform.Infrastructure.ExternalData;
 using FootballDataPlatform.Infrastructure.ExternalData.FootballDataOrg;
 using FootballDataPlatform.Infrastructure.Persistence;
 using FootballDataPlatform.Infrastructure.Persistence.Competitions;
@@ -15,42 +16,30 @@ namespace FootballDataPlatform.Infrastructure;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddInfrastructure(
-        this IServiceCollection services,
-        IConfiguration configuration)
+    public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddDbContext<FootballDataDbContext>(options =>
-            options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
-
+        services.AddDbContext<FootballDataDbContext>(options => options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
         services.AddScoped<ITeamRepository, TeamRepository>();
         services.AddScoped<ICompetitionRepository, CompetitionRepository>();
         services.AddScoped<ISeasonRepository, SeasonRepository>();
         services.AddScoped<IMatchRepository, MatchRepository>();
         services.AddScoped<IExternalIdentityRepository, ExternalIdentityRepository>();
 
-        services
-            .AddOptions<FootballDataOrgOptions>()
+        services.AddOptions<FootballDataOrgOptions>()
             .Bind(configuration.GetSection(FootballDataOrgOptions.SectionName))
-            .Validate(
-                options => Uri.TryCreate(
-                    options.BaseUrl,
-                    UriKind.Absolute,
-                    out _),
-                "FootballDataOrg:BaseUrl must be a valid absolute URI.")
+            .Validate(options => Uri.TryCreate(options.BaseUrl, UriKind.Absolute, out _), "FootballDataOrg:BaseUrl must be a valid absolute URI.")
             .ValidateOnStart();
 
-        services.AddHttpClient<IFootballDataProvider, FootballDataOrgProvider>(
-            (serviceProvider, client) =>
-            {
-                var options = serviceProvider
-                    .GetRequiredService<IOptions<FootballDataOrgOptions>>()
-                    .Value;
+        services.AddHttpClient<FootballDataOrgProvider>((serviceProvider, client) =>
+        {
+            var options = serviceProvider.GetRequiredService<IOptions<FootballDataOrgOptions>>().Value;
+            client.BaseAddress = new Uri(options.BaseUrl);
+            client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+        });
 
-                client.BaseAddress = new Uri(options.BaseUrl);
-                client.DefaultRequestHeaders.Accept.Add(
-                    new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue(
-                        "application/json"));
-            });
+        services.AddScoped<IFootballDataSource>(serviceProvider =>
+            serviceProvider.GetRequiredService<FootballDataOrgProvider>());
+        services.AddScoped<IFootballDataSourceResolver, FootballDataSourceResolver>();
 
         return services;
     }
