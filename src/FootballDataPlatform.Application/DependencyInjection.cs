@@ -15,6 +15,7 @@ public static class DependencyInjection
         services.AddScoped<ITeamImportService, TeamImportService>();
         services.AddScoped<ICompetitionImportService, CompetitionImportService>();
         services.AddScoped<ISeasonImportService, SeasonImportService>();
+        services.AddScoped<IMatchImportService, MatchImportService>();
 
         return services;
     }
