@@ -2,7 +2,8 @@ namespace FootballDataPlatform.Domain.Teams;
 
 public class Team
 {
-    public Guid Id { get; private set; }
+    public long Id { get; private set; }
+    public Guid PublicId { get; private set; }
     public string Name { get; private set; }
     public string Country { get; private set; }
     public string? LogoUrl { get; private set; }
@@ -19,12 +20,14 @@ public class Team
         ValidateOptionalUrl(logoUrl, nameof(logoUrl));
         ValidateOptionalUrl(officialWebsiteUrl, nameof(officialWebsiteUrl));
 
-        Id = Guid.NewGuid();
+        PublicId = Guid.NewGuid();
         Name = name.Trim();
         Country = country.Trim();
         LogoUrl = NormalizeOptional(logoUrl);
         OfficialWebsiteUrl = NormalizeOptional(officialWebsiteUrl);
     }
+
+    private Team() { }
 
     public void UpdateDetails(
         string newName,
