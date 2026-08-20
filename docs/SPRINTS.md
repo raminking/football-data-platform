@@ -4,11 +4,7 @@
 
 # Sprint 1 — Project Foundation
 
-Status
-
-✅ Completed
-
-Completed
+**Status: ✅ Completed**
 
 - Created solution
 - Established project structure
@@ -18,40 +14,21 @@ Completed
 - Configured Entity Framework Core
 - Created initial migration
 
-Outcome
-
-A production-oriented project foundation was established.
-
 ---
 
 ## Sprint 2: Teams Module
 
 **Status: ✅ Completed and locally verified**
 
-**Goal:** Implement full CRUD operations for the Teams aggregate.
-
-### Completed Stories
-- [x] **Create Team:** Register a new football team with name and country.
-- [x] **Get Team:** Retrieve details of a specific team by ID.
-- [x] **Update Team:** Update team details with uniqueness and domain rules.
-- [x] **Delete Team:** Remove a team from the system.
-
-### Technical Implementation
-- Vertical Slice Architecture with Clean Architecture principles.
-- CQRS with MediatR.
-- Rich Domain Model.
-- Repository abstraction in Application and implementation in Infrastructure.
-- Carter API endpoints.
-- PostgreSQL persistence with EF Core.
-- Testcontainers PostgreSQL integration tests.
+- Full Team CRUD
+- Domain validation and uniqueness
+- Repository + PostgreSQL persistence
+- Carter API
+- MediatR/CQRS
+- Testcontainers integration coverage
 
 ### Historical Verification
 - **27 passed, 0 failed, 0 skipped**
-
-### Deferred / Future Improvements
-- [ ] Optimistic Concurrency Control.
-- [ ] Soft Delete vs Hard Delete ADR.
-- [ ] Review update endpoint route consistency.
 
 ---
 
@@ -59,18 +36,13 @@ A production-oriented project foundation was established.
 
 **Status: ✅ Completed and locally verified**
 
-**Goal:** Build the competition and season domain required for the football platform.
-
-### Completed Stories
-- [x] **Competition Entity:** Support league and cup competitions.
-- [x] **Create/Get/Update/Delete Competition:** Validated competition identity and lifecycle operations.
-- [x] **Season Entity:** Model a specific competition edition.
-- [x] **Competition → Season relationship:** Establish the relationship with validation.
-- [x] **Season date-range validation.**
-- [x] **Unique season name within competition.**
-- [x] **PostgreSQL persistence and EF migration.**
-- [x] **Carter API.**
-- [x] **Domain/Application/integration coverage.**
+- Competition CRUD and validation
+- Season entity and Competition relationship
+- Season date-range validation
+- Unique season name within competition
+- PostgreSQL persistence and EF migration
+- Carter API
+- Domain/application/integration coverage
 
 ### Historical Verification
 - **51 passed, 0 failed, 0 skipped**
@@ -81,95 +53,78 @@ A production-oriented project foundation was established.
 
 **Status: ✅ Completed and locally verified**
 
-**Goal:** Implement the core Match domain that connects Teams to a specific Competition Season.
-
-### Completed Stories
-- [x] Match v1 entity and enums.
-- [x] Season → Match relationship.
-- [x] HomeTeam and AwayTeam relationships.
-- [x] Match status lifecycle.
-- [x] Simple Match stage model.
-- [x] Full-time and half-time scores.
-- [x] Result derived from final scores.
-- [x] Domain invariants and validation.
-- [x] Application CRUD operations.
-- [x] Repository abstraction and PostgreSQL implementation.
-- [x] EF Core configuration and migration.
-- [x] Carter API endpoints.
-- [x] Match contracts.
-- [x] Automated test coverage.
-- [x] Full local test suite verification.
-- [x] Documentation synchronization.
-
-### Match v1
-
-```text
-Match
-├── Id
-├── SeasonId
-├── HomeTeamId
-├── AwayTeamId
-├── ScheduledAt
-├── Stage
-├── Status
-├── HomeScore
-├── AwayScore
-├── HalfTimeHomeScore
-├── HalfTimeAwayScore
-└── Result
-```
+- Match v1 entity and enums
+- Season/HomeTeam/AwayTeam relationships
+- Match status lifecycle and stage
+- Full-time and half-time scores
+- Result derived from final scores
+- Domain invariants
+- Application CRUD
+- Repository + PostgreSQL implementation
+- EF Core configuration/migration
+- Carter API and contracts
+- Automated test coverage
+- Documentation synchronization
 
 ### Historical Verification
 - **59 passed, 0 failed, 0 skipped**
 
 ### Deliberately Deferred
-- [ ] Extra-time and penalty-shootout scores.
-- [ ] Goals, cards, substitutions and detailed match events.
-- [ ] Lineups, referee, venue and weather.
-- [ ] Competition formats, groups and qualification rules.
-- [ ] Season participants and promotion/relegation rules.
+- Extra-time and penalty-shootout scores
+- Goals, cards, substitutions and detailed events
+- Lineups, referee, venue and weather
+- Competition formats/groups/qualification rules
+- Season participants and promotion/relegation rules
 
 ---
 
-## Sprint 5: External Data Import
+## Sprint 5: Multi-Source External Data & Import
 
 **Status: 🚧 In progress**
 
-**Goal:** Introduce a production-oriented external football-data ingestion boundary without coupling providers directly to the domain, then build safe idempotent synchronization.
+**Goal:** Build a provider-independent ingestion boundary and a safe, idempotent synchronization pipeline that can support multiple authorized football-data sources.
 
 ### Completed Stories
-- [x] Select first external football-data provider: `football-data.org`.
-- [x] Define provider-independent `IFootballDataProvider` abstraction.
-- [x] Create provider-specific DTOs inside Infrastructure.
-- [x] Implement `FootballDataOrgProvider`.
-- [x] Register provider options and typed HTTP client.
-- [x] Map provider competitions, teams and matches into provider-neutral external records.
-- [x] Add deterministic provider adapter tests using fake HTTP handlers and JSON fixtures.
-- [x] Introduce persistent external identity for provider/entity/external-id mapping.
-- [x] Add database uniqueness for `(Provider, EntityType, ExternalId)`.
-- [x] Add external identity repository abstraction and PostgreSQL implementation.
-- [x] Implement Team import/mapping application service.
-- [x] Implement idempotent Team synchronization using ExternalIdentity.
-- [x] Add Team import unit coverage.
-- [x] Add PostgreSQL integration coverage for Team persistence and repeated imports.
-- [x] Verify current suite: **81 passed, 0 failed, 0 skipped**.
+- [x] First external provider: `football-data.org`.
+- [x] Provider-specific DTOs isolated in Infrastructure.
+- [x] Provider-neutral `ExternalCompetition`, `ExternalSeason`, `ExternalTeam`, `ExternalMatch` records.
+- [x] `IFootballDataSource` abstraction.
+- [x] `IFootballDataSourceResolver` abstraction.
+- [x] `FootballDataOrgProvider` implements the source contract and exposes `SourceKey = "football-data.org"`.
+- [x] Resolver-based source selection using case-insensitive source keys.
+- [x] Persistent `ExternalIdentity` mapping provider/entity/external-id to internal entities.
+- [x] Database uniqueness for `(Provider, EntityType, ExternalId)`.
+- [x] Competition, Season and Team import services migrated to the source-neutral resolver boundary.
+- [x] Idempotent import behavior covered by tests.
+- [x] Provider adapter tests with deterministic HTTP handlers/fixtures.
+- [x] PostgreSQL integration coverage for persistence and repeated imports.
+- [x] Latest user-verified test suite: **97 passed, 0 failed, 0 skipped**.
+
+### Important Source Decision
+- `football-data.org` is the current official/authorized source used by the project.
+- FotMob is **not** treated as a production source. It may only be added if an authorized/licensed access path is available. The project must not depend on unauthorized scraping or private reverse-engineered endpoints.
 
 ### Current Task
-- [ ] Add an integration test proving duplicate ExternalIdentity persistence is rejected by the database constraint.
-- [ ] Review Team import transaction/error behavior and partial-failure semantics.
+- [ ] Complete source priority/fallback behavior.
+- [ ] Add resolver tests for registered source, case-insensitive lookup, unknown source and empty key.
+- [ ] Complete Match import through `IFootballDataSource`.
+- [ ] Add deterministic end-to-end import coverage.
+- [ ] Execute and verify a real `football-data.org` import into the configured PostgreSQL database.
+- [ ] Define transaction and partial-failure behavior.
 
 ### Next Stories
-- [ ] Implement Competition import/mapping service.
-- [ ] Implement Competition create/update/idempotency unit and integration coverage.
-- [ ] Implement Season import/mapping, including Competition relationship resolution.
-- [ ] Extend import to Match.
-- [ ] Define validation and partial-failure handling.
-- [ ] Define retry/backoff and provider error classification.
-- [ ] Add end-to-end import integration coverage.
-- [ ] Evaluate background job scheduling only after synchronous import is stable.
+- [ ] Provider priority and safe fallback semantics.
+- [ ] Match import and ExternalIdentity resolution for competition/season/teams.
+- [ ] Real-data import verification and database record counts.
+- [ ] Retry/backoff and provider error classification.
+- [ ] Rate limiting and provider health handling.
+- [ ] Background scheduling only after synchronous import is stable.
+
+### Database Status
+PostgreSQL persistence and migrations are implemented, but **live football data in the user's local database has not yet been verified**. Integration-test data is not considered production/live source data. The next milestone must explicitly run an import and verify persisted records.
 
 ### Sprint Outcome So Far
-The provider boundary, deterministic adapter tests, persistent external identity, and first idempotent Team synchronization workflow are complete. Sprint 5 is now moving from Team synchronization hardening to Competition and Season synchronization.
+The project has moved from a single-provider import design to a source-neutral Multi-Source architecture. Application and Domain do not depend on a concrete provider. External identities provide stable source-scoped mapping and idempotency. The next focus is completing the import pipeline and proving real database ingestion.
 
 ---
 
