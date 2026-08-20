@@ -3,17 +3,14 @@
 > Compact source of truth for continuing the project across sessions.
 
 ## Current Milestone
-**Sprint 5 — External Data Import: Season synchronization implemented and tested; local verification pending.**
+**Sprint 5 — Multi-Source External Data Architecture in progress.**
 
 ## Completed Milestones
 ### Teams ✅
 - Teams CRUD, domain/application tests, Carter API, PostgreSQL persistence and Testcontainers integration coverage.
-- Team metadata support has been introduced for the current requirements.
-- Current Team domain remains intentionally focused on core identity plus supported metadata.
-- Application-level Team import service implemented.
-- Team import resolves provider external identity and creates or updates the internal Team.
-- Repeated imports are idempotent.
-- PostgreSQL integration coverage verifies Team persistence and ExternalIdentity persistence across repeated imports.
+- Team metadata support introduced for current requirements.
+- Application Team import implemented and idempotent.
+- PostgreSQL integration coverage verifies Team and ExternalIdentity persistence across repeated imports.
 
 ### Competitions & Seasons ✅
 - Competition CRUD, validation, repository, PostgreSQL persistence, Carter API, EF migration and integration coverage.
@@ -30,170 +27,168 @@
 - Carter API endpoints and contracts.
 - PostgreSQL migration and EF model metadata.
 
-### Sprint 5 — External Data Provider & Import 🚧
-- Provider-independent `IFootballDataProvider` abstraction in Application.
-- Provider DTOs kept inside Infrastructure.
-- First provider selected: `football-data.org`.
-- `FootballDataOrgProvider` implemented with HTTP client integration.
-- Provider mapping implemented for competitions, teams, matches and seasons.
-- Season mapping uses the provider competition detail response and maps provider season ID, start date and end date into provider-neutral `ExternalSeason` records.
-- Provider options/configuration added.
-- API token configuration supported through configuration/user-secrets rather than committed secrets.
-- Provider failures are surfaced as HTTP request exceptions at the Infrastructure boundary.
-- Deterministic provider adapter tests added using fake HTTP handlers and JSON fixtures.
-- Persistent `ExternalIdentity` support added for provider/entity/external-id mapping.
-- Unique `(Provider, EntityType, ExternalId)` constraint added through EF Core migration.
-- External identity repository abstraction and PostgreSQL implementation registered in DI.
-- Team import service implemented and registered in DI.
-- Team import unit coverage added.
-- Team import PostgreSQL integration coverage added.
-- Repeated Team import verified as idempotent: existing external identity is reused and the Team is updated without creating duplicates.
-- Competition import application service implemented.
-- Competition import PostgreSQL integration coverage added for create, update and idempotent external-identity persistence.
-- Database-level duplicate ExternalIdentity integration test added and reported green by latest user verification.
-- Season import service implemented and registered in DI.
-- Season import resolves the Competition through persisted external identity, with provider-code fallback to resolve the provider competition ID.
-- Season import creates/updates Season records and persists Season ExternalIdentity records.
-- Season import unit coverage added for create, update, missing competition and invalid provider data.
-- Season import PostgreSQL integration coverage added for create and repeated import update behavior.
+### External Identity & Import Foundation ✅
+- Persistent `ExternalIdentity` support for provider/entity/external-id mapping.
+- Unique `(Provider, EntityType, ExternalId)` database constraint.
+- External identity repository abstraction and PostgreSQL implementation.
+- Competition, Team and Season import services implemented.
+- Create/update/idempotency behavior covered by unit and PostgreSQL integration tests.
+- Season import resolves Competition through persisted external identity with provider-code fallback.
 
-## Current Verification
-Latest user-reported verification before the current Season work:
-- **87 passed**
-- **0 failed**
-- **0 skipped**
-- **87 total**
+## Multi-Source External Data Architecture 🚧
+- Provider-specific DTOs remain inside Infrastructure.
+- Provider-neutral `ExternalCompetition`, `ExternalSeason`, `ExternalTeam` and `ExternalMatch` records remain in Application abstractions.
+- New `IFootballDataSource` abstraction introduced.
+- New `IFootballDataSourceResolver` abstraction introduced.
+- `FootballDataOrgProvider` now implements `IFootballDataSource` and exposes `SourceKey = "football-data.org"`.
+- Infrastructure resolver selects a source by case-insensitive source key.
+- DI registers the current football-data.org source through the resolver boundary.
+- Competition, Team and Season import services now resolve an `IFootballDataSource` instead of directly depending on `IFootballDataProvider`.
+- `ExternalIdentity.Provider` remains the persisted source identity; external IDs never become domain primary keys.
 
-The current Season implementation has not yet been verified locally in this session. Run the full test suite before treating the new baseline as green.
-
-## Current Git State
-- `main` is the single source of truth.
-- Feature/test branches used during Sprint 5 have been removed.
-- `origin/main` is the source of truth for continuation.
-- Working tree was clean at the last reported verification.
-
-## External Provider Boundary
+### Target source architecture
 ```text
-football-data.org
-       ↓
-FootballDataOrgProvider
-       ↓
-IFootballDataProvider
-       ↓
-ExternalCompetition / ExternalSeason / ExternalTeam / ExternalMatch
-       ↓
-Import / Mapping layer
-       ↓
-ExternalIdentity
-       ↓
-Domain + Persistence
+                    Application
+                         │
+             IFootballDataSourceResolver
+                         │
+                IFootballDataSource
+                         │
+          ┌──────────────┼──────────────┐
+          ▼              ▼              ▼
+ football-data.org   Future Source   Licensed FotMob*
+          │
+          ▼
+ ExternalCompetition / ExternalSeason / ExternalTeam / ExternalMatch
+          │
+          ▼
+       Import Services
+          │
+          ▼
+    ExternalIdentity
+          │
+          ▼
+       Domain + DB
 ```
 
-Provider-specific DTOs must not leak into Domain or API contracts.
+`*` FotMob is a future adapter only when an authorized/licensed access path is available. The project must not depend on unauthorized scraping.
 
-## Current External Provider Model
+## Current External Source Contract
 ```text
-IFootballDataProvider
+IFootballDataSource
+├── SourceKey
 ├── GetCompetitionsAsync()
 ├── GetSeasonsAsync(competitionCode)
 ├── GetTeamsAsync(competitionCode, seasonYear)
 └── GetMatchesAsync(competitionCode, seasonYear)
 ```
 
-The provider adapter maps external identifiers to provider-neutral external records. Persistent external identity and Team/Competition/Season import workflows are implemented.
+The source adapter maps provider-specific responses into provider-neutral external records. Provider DTOs must not leak into Domain or API contracts.
 
 ## Import Workflows
 ### Team
 ```text
-IFootballDataProvider
-       ↓
+sourceKey
+   ↓
+IFootballDataSourceResolver
+   ↓
+IFootballDataSource.GetTeamsAsync
+   ↓
 TeamImportService
-       ↓
-Find ExternalIdentity
-   ┌───┴───┐
-   │       │
- found   missing
-   │       │
- update  create Team
-   │       │
-   └───┬───┘
-       ↓
-Persist ExternalIdentity
-       ↓
-PostgreSQL
+   ↓
+ExternalIdentity(source, Team, externalId)
+   ├── found → update Team
+   └── missing → create Team + identity
 ```
 
-The workflow is idempotent for repeated imports of the same provider external identifier.
-
 ### Competition
-The Competition import follows the same provider-neutral identity pattern: resolve `(Provider, EntityType, ExternalId)`, create when missing, update when present, and prevent duplicate domain records when an equivalent competition already exists.
+```text
+sourceKey
+   ↓
+source.GetCompetitionsAsync
+   ↓
+CompetitionImportService
+   ↓
+ExternalIdentity(source, Competition, externalId)
+   ├── found → update Competition
+   └── missing → create Competition + identity
+```
 
 ### Season
 ```text
-competitionCode
-       ↓
-IFootballDataProvider.GetSeasonsAsync
-       ↓
+sourceKey + competitionCode
+   ↓
+source.GetSeasonsAsync
+   ↓
 Resolve Competition ExternalIdentity
-       ↓
+   ↓
 Load internal Competition
-       ↓
-Find Season ExternalIdentity
-   ┌───┴───┐
-   │       │
- found   missing
-   │       │
- update  create Season
-   │       │
-   └───┬───┘
-       ↓
-Persist Season ExternalIdentity
-       ↓
-PostgreSQL
+   ↓
+ExternalIdentity(source, Season, externalId)
+   ├── found → update Season
+   └── missing → create Season + identity
 ```
-
-Season identity is provider/entity/external-id based. The domain relationship remains `Competition → Season`; provider identifiers never become domain primary keys.
 
 ## External Identity Boundary
 ```text
 ExternalIdentity
-├── Provider
+├── Provider / SourceKey
 ├── EntityType
 ├── ExternalId
 └── EntityId
 ```
 
-The database enforces uniqueness for `(Provider, EntityType, ExternalId)`. External identifiers remain integration identities and do not become domain primary keys.
+The database enforces uniqueness for `(Provider, EntityType, ExternalId)`. The source key identifies the external system and remains outside domain primary keys.
+
+## Current Verification
+Latest user-reported verification before the Multi-Source refactor:
+- **92 passed**
+- **0 failed**
+- **0 skipped**
+- **92 total**
+
+The Multi-Source changes committed in the current session have **not yet been locally verified by the user**. Do not treat 92/92 as the verified post-refactor baseline until `dotnet build` and `dotnet test` pass locally.
+
+## Current Git State
+- `main` is the only project branch and source of truth.
+- No feature branch is part of the project workflow.
+- Continue all work directly on `main`.
 
 ## Current Task
-Verify the Season synchronization implementation, then review transaction/partial-failure behavior before extending the workflow to Match import.
+Finish and verify the Multi-Source refactor, including test compatibility and source resolver coverage.
 
-## Next Exact Steps — Sprint 5
-1. Run `dotnet build` and `dotnet test` locally and fix any compilation/test regressions from the Season provider contract.
-2. Add deterministic provider adapter coverage for `GetSeasonsAsync` and its competition-detail JSON mapping.
-3. Review Team, Competition and Season import transaction/error behavior and partial-failure semantics.
-4. Add provider error classification and validation where justified.
-5. Extend the workflow to Match after Competition/Season synchronization is stable.
-6. Add end-to-end import integration coverage using provider fixtures/mocks.
-7. Only after synchronous import is stable, evaluate background scheduling and retry/backoff.
+## Next Exact Steps
+1. Run `dotnet build` locally after the source abstraction changes.
+2. Fix all remaining compile errors caused by the `IFootballDataProvider` → `IFootballDataSource` transition.
+3. Update existing import tests/fakes to use `IFootballDataSourceResolver` and source keys.
+4. Add resolver tests: registered source, case-insensitive lookup, unknown source and empty key.
+5. Add provider adapter tests confirming `SourceKey` and Season mapping.
+6. Run the complete test suite and establish the new verified baseline.
+7. Review transaction/partial-failure behavior across Team, Competition and Season imports.
+8. Then implement Match import using the same source-neutral boundary.
+9. Add end-to-end import coverage with deterministic provider fixtures/mocks.
+10. Only after synchronous import is stable, evaluate retries, rate limiting and background scheduling.
 
 ## Important Boundary Decisions
-- `main` is the only source of truth for project continuation.
+- `main` is the only source of truth.
+- Do not create feature branches for this project unless explicitly agreed otherwise.
 - Provider DTOs stay in Infrastructure.
-- Application owns provider and persistence abstractions; Infrastructure owns implementations.
+- Application owns source and persistence abstractions; Infrastructure owns implementations.
 - External identifiers must not become domain primary keys.
-- External identity is unique by provider + entity type + external identifier.
+- External identity is unique by source/provider + entity type + external identifier.
 - Import must be idempotent before scheduling is introduced.
 - Do not add advanced match/event modelling merely to mirror a provider response.
-- Season provider synchronization is scoped to `id`, competition relationship, start date, end date and a derived MVP season name. Provider fields such as current matchday are intentionally not persisted.
+- Season synchronization persists only the MVP fields required by the current Domain model.
+- New external sources must implement `IFootballDataSource`; Import Services must not reference a concrete provider.
+- FotMob integration must use an authorized access path; do not build an unauthorized scraper.
 
 ## Known Issues / Decisions To Review
 - Teams update endpoint remains `POST /teams/update`; route consistency can be refactored later.
 - Competition-to-Team relationships remain deferred except where required by Match relationships.
 - Optimistic concurrency, soft delete and other advanced production concerns remain deferred until justified.
-- Provider rate limiting/backoff and richer error classification remain to be designed as part of the import workflow.
+- Provider/source rate limiting, retry/backoff and richer error classification remain to be designed.
 - Team/Competition/Season import operations currently use repository-level `SaveChangesAsync` calls and are not yet wrapped in a shared import transaction/unit-of-work.
-- Season import accepts a competition code and resolves the persisted Competition identity; a missing identity currently falls back to provider competition discovery rather than automatically creating the Competition.
+- The current source-neutral refactor changes import method signatures to accept `sourceKey`; API/application callers and tests must be aligned and verified.
 
 ## Session Protocol
 ```bash
