@@ -43,9 +43,9 @@ public sealed class FootballDataOrgProviderTests
         const string json = """{"matches":[{"id":123456,"utcDate":"2025-08-15T19:00:00Z","status":"FINISHED","stage":"REGULAR_SEASON","competition":{"id":2021},"season":{"id":999},"homeTeam":{"id":64},"awayTeam":{"id":65},"score":{"halfTime":{"home":1,"away":0},"fullTime":{"home":2,"away":1}}}]}""";
         var result = await CreateProvider(new FakeHttpMessageHandler(HttpStatusCode.OK, json)).GetMatchesAsync("PL", 2025);
         var match = Assert.Single(result);
-        Assert.Equal("123456", match.ExternalId); Assert.Equal("2021", match.CompetitionExternalId); Assert.Equal("999", match.SeasonExternalId); Assert.Equal("64", match.HomeTeamExternalId); Assert.Equal("65", match.AwayTeamExternalId);
-        Assert.Equal(new DateTimeOffset(2025, 8, 15, 19, 0, 0, TimeSpan.Zero), match.ScheduledAt); Assert.Equal("FINISHED", match.Status); Assert.Equal("REGULAR_SEASON", match.Stage);
-        Assert.Equal(2, match.HomeScore); Assert.Equal(1, match.AwayScore); Assert.Equal(1, match.HalfTimeHomeScore); Assert.Equal(0, match.HalfTimeAwayScore);
+        Assert.Equal("123456", match.ExternalId); Assert.Equal("2021", match.ExternalCompetitionId); Assert.Equal("999", match.ExternalSeasonId); Assert.Equal("64", match.ExternalHomeTeamId); Assert.Equal("65", match.ExternalAwayTeamId);
+        Assert.Equal(new DateTimeOffset(2025, 8, 15, 19, 0, 0, TimeSpan.Zero), match.UtcDate); Assert.Equal("FINISHED", match.Status); Assert.Equal("REGULAR_SEASON", match.Stage);
+        Assert.Equal(2, match.FullTimeHome); Assert.Equal(1, match.FullTimeAway); Assert.Equal(1, match.HalfTimeHome); Assert.Equal(0, match.HalfTimeAway);
     }
 
     [Fact]
