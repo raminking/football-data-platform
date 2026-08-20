@@ -8,31 +8,22 @@ namespace FootballDataPlatform.Tests.Application.ExternalData;
 
 public sealed class SeasonImportServiceTests
 {
-    private static readonly ExternalSeason ExternalSeason =
-        new("2817", "2021", "2025/26", new DateOnly(2025, 8, 15), new DateOnly(2026, 5, 24));
+    private static readonly ExternalSeason ExternalSeason = new("2817", "2021", "2025/26", new DateOnly(2025, 8, 15), new DateOnly(2026, 5, 24));
 
     [Fact]
     public async Task ImportAsync_WhenCompetitionAndSeasonAreNew_CreatesSeasonAndIdentity()
     {
         var competition = new Competition("Premier League", "England", "PL");
-        var provider = CreateProvider();
+        var resolver = CreateResolver();
         var competitions = new Mock<ICompetitionRepository>();
         var seasons = new Mock<ISeasonRepository>();
         var identities = new Mock<IExternalIdentityRepository>();
-
-        identities.Setup(x => x.FindAsync("football-data.org", "Competition", "PL", It.IsAny<CancellationToken>()))
-            .ReturnsAsync((ExternalIdentityRecord?)null);
-        provider.Setup(x => x.GetCompetitionsAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new[] { new ExternalCompetition("2021", "Premier League", "PL", "England") });
-        identities.Setup(x => x.FindAsync("football-data.org", "Competition", "2021", It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ExternalIdentityRecord("football-data.org", "Competition", "2021", competition.Id, DateTimeOffset.UtcNow));
-        competitions.Setup(x => x.GetByIdAsync(competition.Id, It.IsAny<CancellationToken>())).ReturnsAsync(competition);
-        identities.Setup(x => x.FindAsync("football-data.org", "Season", "2817", It.IsAny<CancellationToken>()))
-            .ReturnsAsync((ExternalIdentityRecord?)null);
+        SetupCompetition(competition, resolver, competitions, identities);
+        identities.Setup(x => x.FindAsync("football-data.org", "Season", "2817", It.IsAny<CancellationToken>())).ReturnsAsync((ExternalIdentityRecord?)null);
         seasons.Setup(x => x.ExistsByIdentityAsync(competition.Id, "2025/26", null, It.IsAny<CancellationToken>())).ReturnsAsync(false);
 
-        var service = new SeasonImportService(provider.Object, competitions.Object, seasons.Object, identities.Object);
-        var result = await service.ImportAsync("PL");
+        var service = new SeasonImportService(resolver.Object, competitions.Object, seasons.Object, identities.Object);
+        var result = await service.ImportAsync("football-data.org", "PL");
 
         Assert.Equal(1, result.Created);
         Assert.Equal(0, result.Updated);
@@ -47,19 +38,17 @@ public sealed class SeasonImportServiceTests
     {
         var competition = new Competition("Premier League", "England", "PL");
         var season = new Season(competition.Id, "2025/26", new DateOnly(2025, 8, 15), new DateOnly(2026, 5, 24));
-        var provider = CreateProvider();
+        var resolver = CreateResolver();
         var competitions = new Mock<ICompetitionRepository>();
         var seasons = new Mock<ISeasonRepository>();
         var identities = new Mock<IExternalIdentityRepository>();
-
-        SetupCompetition(competition, provider, competitions, identities);
-        identities.Setup(x => x.FindAsync("football-data.org", "Season", "2817", It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ExternalIdentityRecord("football-data.org", "Season", "2817", season.Id, DateTimeOffset.UtcNow));
+        SetupCompetition(competition, resolver, competitions, identities);
+        identities.Setup(x => x.FindAsync("football-data.org", "Season", "2817", It.IsAny<CancellationToken>())).ReturnsAsync(new ExternalIdentityRecord("football-data.org", "Season", "2817", season.Id, DateTimeOffset.UtcNow));
         seasons.Setup(x => x.GetByIdAsync(season.Id, It.IsAny<CancellationToken>())).ReturnsAsync(season);
         seasons.Setup(x => x.ExistsByIdentityAsync(competition.Id, "2025/26", season.Id, It.IsAny<CancellationToken>())).ReturnsAsync(false);
 
-        var service = new SeasonImportService(provider.Object, competitions.Object, seasons.Object, identities.Object);
-        var result = await service.ImportAsync("PL");
+        var service = new SeasonImportService(resolver.Object, competitions.Object, seasons.Object, identities.Object);
+        var result = await service.ImportAsync("football-data.org", "PL");
 
         Assert.Equal(0, result.Created);
         Assert.Equal(1, result.Updated);
@@ -71,17 +60,19 @@ public sealed class SeasonImportServiceTests
     [Fact]
     public async Task ImportAsync_WhenCompetitionCannotBeResolved_SkipsAllSeasons()
     {
-        var provider = CreateProvider();
+        var resolver = CreateResolver();
         var competitions = new Mock<ICompetitionRepository>();
         var seasons = new Mock<ISeasonRepository>();
         var identities = new Mock<IExternalIdentityRepository>();
-        identities.Setup(x => x.FindAsync("football-data.org", "Competition", "PL", It.IsAny<CancellationToken>()))
-            .ReturnsAsync((ExternalIdentityRecord?)null);
-        provider.Setup(x => x.GetCompetitionsAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Array.Empty<ExternalCompetition>());
+        identities.Setup(x => x.FindAsync("football-data.org", "Competition", "PL", It.IsAny<CancellationToken>())).ReturnsAsync((ExternalIdentityRecord?)null);
+        var source = new Mock<IFootballDataSource>();
+        source.SetupGet(x => x.SourceKey).Returns("football-data.org");
+        source.Setup(x => x.GetSeasonsAsync("PL", It.IsAny<CancellationToken>())).ReturnsAsync(new[] { ExternalSeason });
+        source.Setup(x => x.GetCompetitionsAsync(It.IsAny<CancellationToken>())).ReturnsAsync(Array.Empty<ExternalCompetition>());
+        resolver.Setup(x => x.Resolve("football-data.org")).Returns(source.Object);
 
-        var service = new SeasonImportService(provider.Object, competitions.Object, seasons.Object, identities.Object);
-        var result = await service.ImportAsync("PL");
+        var service = new SeasonImportService(resolver.Object, competitions.Object, seasons.Object, identities.Object);
+        var result = await service.ImportAsync("football-data.org", "PL");
 
         Assert.Equal(0, result.Created);
         Assert.Equal(0, result.Updated);
@@ -93,14 +84,14 @@ public sealed class SeasonImportServiceTests
     public async Task ImportAsync_WhenSeasonIsInvalid_SkipsIt()
     {
         var competition = new Competition("Premier League", "England", "PL");
-        var provider = CreateProvider(new ExternalSeason("", "2021", "2025/26", new DateOnly(2025, 8, 15), new DateOnly(2026, 5, 24)));
+        var resolver = CreateResolver(new ExternalSeason("", "2021", "2025/26", new DateOnly(2025, 8, 15), new DateOnly(2026, 5, 24)));
         var competitions = new Mock<ICompetitionRepository>();
         var seasons = new Mock<ISeasonRepository>();
         var identities = new Mock<IExternalIdentityRepository>();
-        SetupCompetition(competition, provider, competitions, identities);
+        SetupCompetition(competition, resolver, competitions, identities);
 
-        var service = new SeasonImportService(provider.Object, competitions.Object, seasons.Object, identities.Object);
-        var result = await service.ImportAsync("PL");
+        var service = new SeasonImportService(resolver.Object, competitions.Object, seasons.Object, identities.Object);
+        var result = await service.ImportAsync("football-data.org", "PL");
 
         Assert.Equal(0, result.Created);
         Assert.Equal(0, result.Updated);
@@ -108,27 +99,25 @@ public sealed class SeasonImportServiceTests
         Assert.Single(result.Errors);
     }
 
-    private static Mock<IFootballDataProvider> CreateProvider(ExternalSeason? season = null)
+    private static Mock<IFootballDataSourceResolver> CreateResolver(ExternalSeason? season = null)
     {
-        var provider = new Mock<IFootballDataProvider>();
-        provider.SetupGet(x => x.ProviderName).Returns("football-data.org");
-        provider.Setup(x => x.GetSeasonsAsync("PL", It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new[] { season ?? ExternalSeason });
-        return provider;
+        var source = new Mock<IFootballDataSource>();
+        source.SetupGet(x => x.SourceKey).Returns("football-data.org");
+        source.Setup(x => x.GetSeasonsAsync("PL", It.IsAny<CancellationToken>())).ReturnsAsync(new[] { season ?? ExternalSeason });
+        var resolver = new Mock<IFootballDataSourceResolver>();
+        resolver.Setup(x => x.Resolve("football-data.org")).Returns(source.Object);
+        return resolver;
     }
 
-    private static void SetupCompetition(
-        Competition competition,
-        Mock<IFootballDataProvider> provider,
-        Mock<ICompetitionRepository> competitions,
-        Mock<IExternalIdentityRepository> identities)
+    private static void SetupCompetition(Competition competition, Mock<IFootballDataSourceResolver> resolver, Mock<ICompetitionRepository> competitions, Mock<IExternalIdentityRepository> identities)
     {
-        identities.Setup(x => x.FindAsync("football-data.org", "Competition", "PL", It.IsAny<CancellationToken>()))
-            .ReturnsAsync((ExternalIdentityRecord?)null);
-        provider.Setup(x => x.GetCompetitionsAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new[] { new ExternalCompetition("2021", "Premier League", "PL", "England") });
-        identities.Setup(x => x.FindAsync("football-data.org", "Competition", "2021", It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ExternalIdentityRecord("football-data.org", "Competition", "2021", competition.Id, DateTimeOffset.UtcNow));
+        var source = new Mock<IFootballDataSource>();
+        source.SetupGet(x => x.SourceKey).Returns("football-data.org");
+        source.Setup(x => x.GetSeasonsAsync("PL", It.IsAny<CancellationToken>())).ReturnsAsync(new[] { ExternalSeason });
+        source.Setup(x => x.GetCompetitionsAsync(It.IsAny<CancellationToken>())).ReturnsAsync(new[] { new ExternalCompetition("2021", "Premier League", "PL", "England") });
+        resolver.Setup(x => x.Resolve("football-data.org")).Returns(source.Object);
+        identities.Setup(x => x.FindAsync("football-data.org", "Competition", "PL", It.IsAny<CancellationToken>())).ReturnsAsync((ExternalIdentityRecord?)null);
+        identities.Setup(x => x.FindAsync("football-data.org", "Competition", "2021", It.IsAny<CancellationToken>())).ReturnsAsync(new ExternalIdentityRecord("football-data.org", "Competition", "2021", competition.Id, DateTimeOffset.UtcNow));
         competitions.Setup(x => x.GetByIdAsync(competition.Id, It.IsAny<CancellationToken>())).ReturnsAsync(competition);
     }
 }
