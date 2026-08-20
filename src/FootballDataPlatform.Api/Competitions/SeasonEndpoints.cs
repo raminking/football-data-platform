@@ -11,29 +11,29 @@ public sealed class SeasonEndpoints : ICarterModule
     {
         app.MapPost("/seasons", async (CreateSeasonRequest request, ISender sender, CancellationToken ct) =>
         {
-            var result = await sender.Send(new CreateSeasonCommand(request.CompetitionId, request.Name, request.StartDate, request.EndDate), ct);
+            var result = await sender.Send(new CreateSeasonCommand(request.CompetitionPublicId, request.Name, request.StartDate, request.EndDate), ct);
             if (!result.IsSuccess) return Results.BadRequest(result.Error);
-            return Results.Created($"/seasons/{result.Value}", new { id = result.Value });
+            return Results.Created($"/seasons/{result.Value}", new { publicId = result.Value });
         }).WithTags("Seasons").Produces(StatusCodes.Status201Created).Produces(StatusCodes.Status400BadRequest);
 
-        app.MapGet("/seasons/{id:guid}", async (Guid id, ISender sender, CancellationToken ct) =>
+        app.MapGet("/seasons/{publicId:guid}", async (Guid publicId, ISender sender, CancellationToken ct) =>
         {
-            var result = await sender.Send(new GetSeasonQuery(id), ct);
+            var result = await sender.Send(new GetSeasonQuery(publicId), ct);
             if (!result.IsSuccess) return Results.NotFound();
             var season = result.Value!;
-            return Results.Ok(new SeasonResponse(season.Id, season.CompetitionId, season.Name, season.StartDate, season.EndDate));
+            return Results.Ok(new SeasonResponse(season.PublicId, Guid.Empty, season.Name, season.StartDate, season.EndDate));
         }).WithTags("Seasons").Produces<SeasonResponse>().Produces(StatusCodes.Status404NotFound);
 
-        app.MapPut("/seasons/{id:guid}", async (Guid id, CreateSeasonRequest request, ISender sender, CancellationToken ct) =>
+        app.MapPut("/seasons/{publicId:guid}", async (Guid publicId, CreateSeasonRequest request, ISender sender, CancellationToken ct) =>
         {
-            var result = await sender.Send(new UpdateSeasonCommand(id, request.Name, request.StartDate, request.EndDate), ct);
+            var result = await sender.Send(new UpdateSeasonCommand(publicId, request.Name, request.StartDate, request.EndDate), ct);
             if (!result.IsSuccess) return Results.BadRequest(result.Error);
-            return Results.Ok(new { id });
+            return Results.Ok(new { publicId });
         }).WithTags("Seasons").Produces(StatusCodes.Status200OK).Produces(StatusCodes.Status400BadRequest);
 
-        app.MapDelete("/seasons/{id:guid}", async (Guid id, ISender sender, CancellationToken ct) =>
+        app.MapDelete("/seasons/{publicId:guid}", async (Guid publicId, ISender sender, CancellationToken ct) =>
         {
-            var result = await sender.Send(new DeleteSeasonCommand(id), ct);
+            var result = await sender.Send(new DeleteSeasonCommand(publicId), ct);
             if (!result.IsSuccess) return Results.NotFound();
             return Results.NoContent();
         }).WithTags("Seasons").Produces(StatusCodes.Status204NoContent).Produces(StatusCodes.Status404NotFound);
