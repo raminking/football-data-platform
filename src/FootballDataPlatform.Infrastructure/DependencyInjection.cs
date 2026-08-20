@@ -24,6 +24,7 @@ public static class DependencyInjection
         services.AddScoped<ISeasonRepository, SeasonRepository>();
         services.AddScoped<IMatchRepository, MatchRepository>();
         services.AddScoped<IExternalIdentityRepository, ExternalIdentityRepository>();
+        services.AddScoped<IImportDataStatusReader, ImportDataStatusReader>();
 
         services.AddOptions<FootballDataOrgOptions>()
             .Bind(configuration.GetSection(FootballDataOrgOptions.SectionName))
