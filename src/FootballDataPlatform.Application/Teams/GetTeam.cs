@@ -4,12 +4,9 @@ using MediatR;
 
 namespace FootballDataPlatform.Application.Teams;
 
-public record GetTeamQuery(Guid Id) : IRequest<Team?>;
+public record GetTeamQuery(Guid PublicId) : IRequest<Team?>;
 
 internal class GetTeamHandler(ITeamRepository repository) : IRequestHandler<GetTeamQuery, Team?>
 {
-    public async Task<Team?> Handle(GetTeamQuery query, CancellationToken ct)
-    {
-        return await repository.GetByIdAsync(query.Id, cancellationToken: ct);
-    }
+    public Task<Team?> Handle(GetTeamQuery query, CancellationToken ct) => repository.GetByPublicIdAsync(query.PublicId, ct);
 }
