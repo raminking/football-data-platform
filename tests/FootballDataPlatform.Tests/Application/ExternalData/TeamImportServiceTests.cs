@@ -2,6 +2,7 @@ using FootballDataPlatform.Application.Abstractions.ExternalData;
 using FootballDataPlatform.Application.Abstractions.Persistence;
 using FootballDataPlatform.Application.ExternalData;
 using FootballDataPlatform.Domain.Teams;
+using FootballDataPlatform.Tests.Helpers;
 using Moq;
 
 namespace FootballDataPlatform.Tests.Application.ExternalData;
@@ -25,10 +26,10 @@ public sealed class TeamImportServiceTests
     [Fact]
     public async Task ImportAsync_WhenIdentityExists_UpdatesExistingTeamWithoutCreatingIdentity()
     {
-        var team = new Team("Liverpool", "England"); var resolver = CreateResolver(); var teams = new Mock<ITeamRepository>(); var identities = new Mock<IExternalIdentityRepository>();
+        var team = new Team("Liverpool", "England").WithId(1); var resolver = CreateResolver(); var teams = new Mock<ITeamRepository>(); var identities = new Mock<IExternalIdentityRepository>();
         var service = new TeamImportService(resolver.Object, teams.Object, identities.Object);
-        identities.Setup(x => x.FindAsync("football-data.org", "Team", "64", It.IsAny<CancellationToken>())).ReturnsAsync(new ExternalIdentityRecord("football-data.org", "Team", "64", 1, DateTimeOffset.UtcNow));
-        teams.Setup(x => x.GetByIdAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(team);
+        identities.Setup(x => x.FindAsync("football-data.org", "Team", "64", It.IsAny<CancellationToken>())).ReturnsAsync(new ExternalIdentityRecord("football-data.org", "Team", "64", team.Id, DateTimeOffset.UtcNow));
+        teams.Setup(x => x.GetByIdAsync(team.Id, It.IsAny<CancellationToken>())).ReturnsAsync(team);
         var result = await service.ImportAsync("football-data.org", "PL", 2026);
         Assert.Equal(0, result.Created); Assert.Equal(1, result.Updated); Assert.Equal("Liverpool FC", team.Name);
         teams.Verify(x => x.UpdateAsync(team, It.IsAny<CancellationToken>()), Times.Once); teams.Verify(x => x.CreateAsync(It.IsAny<Team>(), It.IsAny<CancellationToken>()), Times.Never); identities.Verify(x => x.AddAsync(It.IsAny<ExternalIdentityRecord>(), It.IsAny<CancellationToken>()), Times.Never);
