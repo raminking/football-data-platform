@@ -2,6 +2,7 @@ using FootballDataPlatform.Application.Abstractions.ExternalData;
 using FootballDataPlatform.Application.Abstractions.Persistence;
 using FootballDataPlatform.Application.ExternalData;
 using FootballDataPlatform.Domain.Competitions;
+using FootballDataPlatform.Tests.Helpers;
 using Moq;
 
 namespace FootballDataPlatform.Tests.Application.ExternalData;
@@ -13,7 +14,7 @@ public sealed class SeasonImportServiceTests
     [Fact]
     public async Task ImportAsync_WhenCompetitionAndSeasonAreNew_CreatesSeasonAndIdentity()
     {
-        var competition = new Competition("Premier League", "England", "PL");
+        var competition = new Competition("Premier League", "England", "PL").WithId(1);
         var resolver = CreateResolver();
         var competitions = new Mock<ICompetitionRepository>();
         var seasons = new Mock<ISeasonRepository>();
@@ -36,8 +37,8 @@ public sealed class SeasonImportServiceTests
     [Fact]
     public async Task ImportAsync_WhenSeasonIdentityExists_UpdatesSeason()
     {
-        var competition = new Competition("Premier League", "England", "PL");
-        var season = new Season(competition.Id, "2025/26", new DateOnly(2025, 8, 15), new DateOnly(2026, 5, 24));
+        var competition = new Competition("Premier League", "England", "PL").WithId(1);
+        var season = new Season(competition.Id, "2025/26", new DateOnly(2025, 8, 15), new DateOnly(2026, 5, 24)).WithId(2);
         var resolver = CreateResolver();
         var competitions = new Mock<ICompetitionRepository>();
         var seasons = new Mock<ISeasonRepository>();
@@ -83,7 +84,7 @@ public sealed class SeasonImportServiceTests
     [Fact]
     public async Task ImportAsync_WhenSeasonIsInvalid_SkipsIt()
     {
-        var competition = new Competition("Premier League", "England", "PL");
+        var competition = new Competition("Premier League", "England", "PL").WithId(1);
         var resolver = new Mock<IFootballDataSourceResolver>();
         var source = new Mock<IFootballDataSource>();
         source.SetupGet(x => x.SourceKey).Returns("football-data.org");
