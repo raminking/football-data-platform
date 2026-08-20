@@ -11,30 +11,15 @@ public sealed class ExternalIdentityIntegrationTests
     public async Task SaveChangesAsync_ShouldRejectDuplicateProviderEntityTypeAndExternalId()
     {
         await using var factory = new ExternalIdentityWebApplicationFactory();
-
         using var scope = factory.Services.CreateScope();
-        var dbContext = scope.ServiceProvider
-            .GetRequiredService<FootballDataDbContext>();
+        var dbContext = scope.ServiceProvider.GetRequiredService<FootballDataDbContext>();
 
-        var first = new ExternalIdentity(
-            provider: "football-data.org",
-            entityType: "Competition",
-            externalId: "2021",
-            internalEntityId: Guid.NewGuid());
-
-        var duplicate = new ExternalIdentity(
-            provider: "football-data.org",
-            entityType: "Competition",
-            externalId: "2021",
-            internalEntityId: Guid.NewGuid());
+        var first = new ExternalIdentity("football-data.org", "Competition", "2021", 1);
+        var duplicate = new ExternalIdentity("football-data.org", "Competition", "2021", 2);
 
         dbContext.ExternalIdentities.AddRange(first, duplicate);
-
-        await Assert.ThrowsAsync<DbUpdateException>(
-            () => dbContext.SaveChangesAsync());
+        await Assert.ThrowsAsync<DbUpdateException>(() => dbContext.SaveChangesAsync());
     }
 
-    private sealed class ExternalIdentityWebApplicationFactory : CustomWebApplicationFactory
-    {
-    }
+    private sealed class ExternalIdentityWebApplicationFactory : CustomWebApplicationFactory { }
 }
