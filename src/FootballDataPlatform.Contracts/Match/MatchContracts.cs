@@ -3,9 +3,9 @@ using FootballDataPlatform.Domain.Match;
 namespace FootballDataPlatform.Contracts.Match;
 
 public sealed record CreateMatchRequest(
-    Guid SeasonId,
-    Guid HomeTeamId,
-    Guid AwayTeamId,
+    Guid SeasonPublicId,
+    Guid HomeTeamPublicId,
+    Guid AwayTeamPublicId,
     DateTimeOffset ScheduledAt,
     MatchStage Stage,
     MatchStatus Status,
@@ -15,10 +15,7 @@ public sealed record CreateMatchRequest(
     int? HalfTimeAwayScore = null);
 
 public sealed record MatchResponse(
-    Guid Id,
-    Guid SeasonId,
-    Guid HomeTeamId,
-    Guid AwayTeamId,
+    Guid PublicId,
     DateTimeOffset ScheduledAt,
     MatchStage Stage,
     MatchStatus Status,
