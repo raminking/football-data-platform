@@ -9,31 +9,15 @@ public class GetTeamHandlerTests
     [Fact]
     public async Task Handle_ShouldReturnTeam_WhenTeamExists()
     {
-        // Arrange
-        var team = new FootballDataPlatform.Domain.Teams.Team(
-            "Benfica",
-            "Portugal");
-
+        var team = new FootballDataPlatform.Domain.Teams.Team("Benfica", "Portugal");
         var repository = new Mock<ITeamRepository>();
-
-        repository
-            .Setup(x => x.GetByIdAsync(
-                team.Id,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(team);
-
+        repository.Setup(x => x.GetByPublicIdAsync(team.PublicId, It.IsAny<CancellationToken>())).ReturnsAsync(team);
         var handler = new GetTeamHandler(repository.Object);
 
-        var query = new GetTeamQuery(team.Id);
+        var result = await handler.Handle(new GetTeamQuery(team.PublicId), CancellationToken.None);
 
-        // Act
-        var result = await handler.Handle(
-            query,
-            CancellationToken.None);
-
-        // Assert
         Assert.NotNull(result);
-        Assert.Equal(team.Id, result.Id);
+        Assert.Equal(team.PublicId, result.PublicId);
         Assert.Equal("Benfica", result.Name);
     }
 }
