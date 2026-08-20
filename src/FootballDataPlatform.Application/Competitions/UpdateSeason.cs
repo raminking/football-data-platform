@@ -18,8 +18,7 @@ internal sealed class UpdateSeasonHandler(ISeasonRepository repository)
         if (season is null) return Result<bool>.Failure("Season not found.");
 
         var name = command.Name.Trim();
-        if (await repository.ExistsByIdentityAsync(season.CompetitionId, name, ct) &&
-            !string.Equals(season.Name, name, StringComparison.OrdinalIgnoreCase))
+        if (await repository.ExistsByIdentityAsync(season.CompetitionId, name, season.Id, ct))
             return Result<bool>.Failure("Season already exists for this competition.");
 
         season.UpdateDetails(name, command.StartDate, command.EndDate);
