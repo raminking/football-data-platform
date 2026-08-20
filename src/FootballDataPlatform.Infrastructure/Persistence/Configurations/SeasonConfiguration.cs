@@ -9,15 +9,13 @@ public class SeasonConfiguration : IEntityTypeConfiguration<Season>
     public void Configure(EntityTypeBuilder<Season> builder)
     {
         builder.HasKey(x => x.Id);
+        builder.Property(x => x.Id).ValueGeneratedOnAdd();
+        builder.Property(x => x.PublicId).IsRequired();
+        builder.HasIndex(x => x.PublicId).IsUnique();
         builder.Property(x => x.Name).HasMaxLength(50).IsRequired();
         builder.Property(x => x.StartDate).IsRequired();
         builder.Property(x => x.EndDate).IsRequired();
-
-        builder.HasOne<Competition>()
-            .WithMany()
-            .HasForeignKey(x => x.CompetitionId)
-            .OnDelete(DeleteBehavior.Cascade);
-
+        builder.HasOne<Competition>().WithMany().HasForeignKey(x => x.CompetitionId).OnDelete(DeleteBehavior.Cascade);
         builder.HasIndex(x => new { x.CompetitionId, x.Name }).IsUnique();
     }
 }
