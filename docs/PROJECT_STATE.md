@@ -3,7 +3,7 @@
 > Compact source of truth for continuing the project across sessions.
 
 ## Current Milestone
-**Sprint 5 — External Data Import: Team synchronization completed and Competition import persistence coverage added.**
+**Sprint 5 — External Data Import: Season synchronization implemented and tested; local verification pending.**
 
 ## Completed Milestones
 ### Teams ✅
@@ -35,7 +35,8 @@
 - Provider DTOs kept inside Infrastructure.
 - First provider selected: `football-data.org`.
 - `FootballDataOrgProvider` implemented with HTTP client integration.
-- Provider mapping implemented for competitions, teams and matches.
+- Provider mapping implemented for competitions, teams, matches and seasons.
+- Season mapping uses the provider competition detail response and maps provider season ID, start date and end date into provider-neutral `ExternalSeason` records.
 - Provider options/configuration added.
 - API token configuration supported through configuration/user-secrets rather than committed secrets.
 - Provider failures are surfaced as HTTP request exceptions at the Infrastructure boundary.
@@ -49,16 +50,21 @@
 - Repeated Team import verified as idempotent: existing external identity is reused and the Team is updated without creating duplicates.
 - Competition import application service implemented.
 - Competition import PostgreSQL integration coverage added for create, update and idempotent external-identity persistence.
-- Changes are merged into `main`.
+- Database-level duplicate ExternalIdentity integration test added and reported green by latest user verification.
+- Season import service implemented and registered in DI.
+- Season import resolves the Competition through persisted external identity, with provider-code fallback to resolve the provider competition ID.
+- Season import creates/updates Season records and persists Season ExternalIdentity records.
+- Season import unit coverage added for create, update, missing competition and invalid provider data.
+- Season import PostgreSQL integration coverage added for create and repeated import update behavior.
 
 ## Current Verification
-Latest local verification:
-- **86 passed**
+Latest user-reported verification before the current Season work:
+- **87 passed**
 - **0 failed**
 - **0 skipped**
-- **86 total**
+- **87 total**
 
-Full test suite is green. The 86-test baseline is the current gate for continuing work.
+The current Season implementation has not yet been verified locally in this session. Run the full test suite before treating the new baseline as green.
 
 ## Current Git State
 - `main` is the single source of truth.
@@ -74,7 +80,7 @@ FootballDataOrgProvider
        ↓
 IFootballDataProvider
        ↓
-ExternalCompetition / ExternalTeam / ExternalMatch
+ExternalCompetition / ExternalSeason / ExternalTeam / ExternalMatch
        ↓
 Import / Mapping layer
        ↓
@@ -89,11 +95,12 @@ Provider-specific DTOs must not leak into Domain or API contracts.
 ```text
 IFootballDataProvider
 ├── GetCompetitionsAsync()
+├── GetSeasonsAsync(competitionCode)
 ├── GetTeamsAsync(competitionCode, seasonYear)
 └── GetMatchesAsync(competitionCode, seasonYear)
 ```
 
-The provider adapter maps external identifiers to provider-neutral external records. Persistent external identity and Team/Competition import workflows are implemented.
+The provider adapter maps external identifiers to provider-neutral external records. Persistent external identity and Team/Competition/Season import workflows are implemented.
 
 ## Import Workflows
 ### Team
@@ -121,6 +128,32 @@ The workflow is idempotent for repeated imports of the same provider external id
 ### Competition
 The Competition import follows the same provider-neutral identity pattern: resolve `(Provider, EntityType, ExternalId)`, create when missing, update when present, and prevent duplicate domain records when an equivalent competition already exists.
 
+### Season
+```text
+competitionCode
+       ↓
+IFootballDataProvider.GetSeasonsAsync
+       ↓
+Resolve Competition ExternalIdentity
+       ↓
+Load internal Competition
+       ↓
+Find Season ExternalIdentity
+   ┌───┴───┐
+   │       │
+ found   missing
+   │       │
+ update  create Season
+   │       │
+   └───┬───┘
+       ↓
+Persist Season ExternalIdentity
+       ↓
+PostgreSQL
+```
+
+Season identity is provider/entity/external-id based. The domain relationship remains `Competition → Season`; provider identifiers never become domain primary keys.
+
 ## External Identity Boundary
 ```text
 ExternalIdentity
@@ -133,18 +166,16 @@ ExternalIdentity
 The database enforces uniqueness for `(Provider, EntityType, ExternalId)`. External identifiers remain integration identities and do not become domain primary keys.
 
 ## Current Task
-Finish the persistence and synchronization boundary for Competition, then implement Season import with correct Competition resolution and external identity handling.
+Verify the Season synchronization implementation, then review transaction/partial-failure behavior before extending the workflow to Match import.
 
 ## Next Exact Steps — Sprint 5
-1. Add an integration test proving duplicate ExternalIdentity persistence is rejected by the database constraint.
-2. Review Team and Competition import transaction/error behavior and partial-failure semantics.
-3. Complete Competition import unit/idempotency coverage where gaps remain.
-4. Implement Season import/mapping, resolving its Competition relationship and external identity.
-5. Add Season create/update/idempotency unit and PostgreSQL integration coverage.
-6. Add validation, partial-failure handling and provider error classification.
-7. Extend the workflow to Match after Competition/Season synchronization is stable.
-8. Add end-to-end import integration coverage using provider fixtures/mocks.
-9. Only after synchronous import is stable, evaluate background scheduling and retry/backoff.
+1. Run `dotnet build` and `dotnet test` locally and fix any compilation/test regressions from the Season provider contract.
+2. Add deterministic provider adapter coverage for `GetSeasonsAsync` and its competition-detail JSON mapping.
+3. Review Team, Competition and Season import transaction/error behavior and partial-failure semantics.
+4. Add provider error classification and validation where justified.
+5. Extend the workflow to Match after Competition/Season synchronization is stable.
+6. Add end-to-end import integration coverage using provider fixtures/mocks.
+7. Only after synchronous import is stable, evaluate background scheduling and retry/backoff.
 
 ## Important Boundary Decisions
 - `main` is the only source of truth for project continuation.
@@ -154,13 +185,15 @@ Finish the persistence and synchronization boundary for Competition, then implem
 - External identity is unique by provider + entity type + external identifier.
 - Import must be idempotent before scheduling is introduced.
 - Do not add advanced match/event modelling merely to mirror a provider response.
+- Season provider synchronization is scoped to `id`, competition relationship, start date, end date and a derived MVP season name. Provider fields such as current matchday are intentionally not persisted.
 
 ## Known Issues / Decisions To Review
 - Teams update endpoint remains `POST /teams/update`; route consistency can be refactored later.
 - Competition-to-Team relationships remain deferred except where required by Match relationships.
 - Optimistic concurrency, soft delete and other advanced production concerns remain deferred until justified.
 - Provider rate limiting/backoff and richer error classification remain to be designed as part of the import workflow.
-- Season external identity must be resolved as part of the import workflow even though the current provider abstraction exposes seasons through competition/season context rather than a separate `GetSeasonsAsync` operation.
+- Team/Competition/Season import operations currently use repository-level `SaveChangesAsync` calls and are not yet wrapped in a shared import transaction/unit-of-work.
+- Season import accepts a competition code and resolves the persisted Competition identity; a missing identity currently falls back to provider competition discovery rather than automatically creating the Competition.
 
 ## Session Protocol
 ```bash
