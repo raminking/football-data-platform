@@ -10,7 +10,10 @@ public static class DatabaseInitializationExtensions
         CancellationToken cancellationToken = default)
     {
         await using var scope = services.CreateAsyncScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<Persistence.FootballDataDbContext>();
-        await dbContext.Database.EnsureCreatedAsync(cancellationToken);
+
+        var dbContext =
+            scope.ServiceProvider.GetRequiredService<Persistence.FootballDataDbContext>();
+
+        await dbContext.Database.MigrateAsync(cancellationToken);
     }
 }
