@@ -2,22 +2,25 @@ namespace FootballDataPlatform.Domain.Competitions;
 
 public class Season
 {
-    public Guid Id { get; private set; }
-    public Guid CompetitionId { get; private set; }
+    public long Id { get; private set; }
+    public Guid PublicId { get; private set; }
+    public long CompetitionId { get; private set; }
     public string Name { get; private set; }
     public DateOnly StartDate { get; private set; }
     public DateOnly EndDate { get; private set; }
 
-    public Season(Guid competitionId, string name, DateOnly startDate, DateOnly endDate)
+    public Season(long competitionId, string name, DateOnly startDate, DateOnly endDate)
     {
         Validate(competitionId, name, startDate, endDate);
 
-        Id = Guid.NewGuid();
+        PublicId = Guid.NewGuid();
         CompetitionId = competitionId;
         Name = name.Trim();
         StartDate = startDate;
         EndDate = endDate;
     }
+
+    private Season() { }
 
     public void UpdateDetails(string name, DateOnly startDate, DateOnly endDate)
     {
@@ -28,9 +31,9 @@ public class Season
         EndDate = endDate;
     }
 
-    private static void Validate(Guid competitionId, string name, DateOnly startDate, DateOnly endDate)
+    private static void Validate(long competitionId, string name, DateOnly startDate, DateOnly endDate)
     {
-        if (competitionId == Guid.Empty)
+        if (competitionId <= 0)
             throw new ArgumentException("Competition is required.", nameof(competitionId));
         if (string.IsNullOrWhiteSpace(name))
             throw new ArgumentException("Season name is required.", nameof(name));
