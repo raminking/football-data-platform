@@ -4,17 +4,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FootballDataPlatform.Infrastructure.Persistence.Teams;
 
-public class TeamRepository(FootballDataDbContext context)
-    : ITeamRepository
+public class TeamRepository(FootballDataDbContext context) : ITeamRepository
 {
-    public Task<bool> ExistsByNameAsync(string name, string country,Guid? excludeId, 
-        CancellationToken cancellationToken)
-    {
-        return context.Teams
-            .AnyAsync(
-                team => team.Name == name && team.Country == country && team.Id != excludeId,
-                cancellationToken);
-    }
+    public Task<bool> ExistsByNameAsync(string name, string country, long? excludeId, CancellationToken cancellationToken) =>
+        context.Teams.AnyAsync(team => team.Name == name && team.Country == country && (!excludeId.HasValue || team.Id != excludeId.Value), cancellationToken);
 
     public async Task CreateAsync(Team team, CancellationToken cancellationToken)
     {
@@ -28,14 +21,11 @@ public class TeamRepository(FootballDataDbContext context)
         await context.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<Team?> GetByIdAsync(
-        Guid id,
-        CancellationToken cancellationToken)
-    {
-        return await context.Teams.FirstOrDefaultAsync(
-            t => t.Id == id,
-            cancellationToken);
-    }
+    public Task<Team?> GetByIdAsync(long id, CancellationToken cancellationToken) =>
+        context.Teams.FirstOrDefaultAsync(t => t.Id == id, cancellationToken);
+
+    public Task<Team?> GetByPublicIdAsync(Guid publicId, CancellationToken cancellationToken) =>
+        context.Teams.FirstOrDefaultAsync(t => t.PublicId == publicId, cancellationToken);
 
     public async Task DeleteAsync(Team team, CancellationToken cancellationToken)
     {
