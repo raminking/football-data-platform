@@ -4,11 +4,8 @@ using MediatR;
 
 namespace FootballDataPlatform.Application.Competitions;
 
-public record GetCompetitionQuery(Guid Id) : IRequest<Competition?>;
-
-internal sealed class GetCompetitionHandler(ICompetitionRepository repository)
-    : IRequestHandler<GetCompetitionQuery, Competition?>
+public record GetCompetitionQuery(Guid PublicId) : IRequest<Competition?>;
+internal sealed class GetCompetitionHandler(ICompetitionRepository repository) : IRequestHandler<GetCompetitionQuery, Competition?>
 {
-    public Task<Competition?> Handle(GetCompetitionQuery query, CancellationToken ct) =>
-        repository.GetByIdAsync(query.Id, ct);
+    public Task<Competition?> Handle(GetCompetitionQuery query, CancellationToken ct) => repository.GetByPublicIdAsync(query.PublicId, ct);
 }
