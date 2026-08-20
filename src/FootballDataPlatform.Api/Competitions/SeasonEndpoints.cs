@@ -21,7 +21,7 @@ public sealed class SeasonEndpoints : ICarterModule
             var result = await sender.Send(new GetSeasonQuery(publicId), ct);
             if (!result.IsSuccess) return Results.NotFound();
             var season = result.Value!;
-            return Results.Ok(new SeasonResponse(season.PublicId, Guid.Empty, season.Name, season.StartDate, season.EndDate));
+            return Results.Ok(new SeasonResponse(season.PublicId, season.Name, season.StartDate, season.EndDate));
         }).WithTags("Seasons").Produces<SeasonResponse>().Produces(StatusCodes.Status404NotFound);
 
         app.MapPut("/seasons/{publicId:guid}", async (Guid publicId, CreateSeasonRequest request, ISender sender, CancellationToken ct) =>
