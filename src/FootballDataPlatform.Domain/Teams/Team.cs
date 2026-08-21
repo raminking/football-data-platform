@@ -4,8 +4,8 @@ public class Team
 {
     public long Id { get; private set; }
     public Guid PublicId { get; private set; }
-    public string Name { get; private set; }
-    public string Country { get; private set; }
+    public string Name { get; private set; } = null!;
+    public string Country { get; private set; } = null!;
     public string? LogoUrl { get; private set; }
     public string? OfficialWebsiteUrl { get; private set; }
 
