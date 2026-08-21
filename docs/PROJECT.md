@@ -2,15 +2,17 @@
 
 ## Vision
 
-Football Data Platform is a production-oriented backend project built to demonstrate modern Backend Engineering and Data Engineering practices.
+Football Data Platform is a production-oriented backend and future football analytics data platform. It is not intended to remain only a CRUD API or a thin wrapper around `football-data.org`.
 
-The project is designed as a portfolio to showcase software architecture, clean code, testing, relational database design, domain modelling, API development, and external data integration.
+The platform is designed to become a reliable, source-neutral foundation for football analysis while remaining incremental: today's implementation should be small, but tomorrow's player, match, tactical, event and statistical capabilities must be addable without rewriting the existing core.
+
+The project is also a portfolio project demonstrating modern Backend Engineering and Data Engineering practices: architecture, clean code, testing, relational modelling, domain modelling, API development, idempotent ingestion and external data integration.
 
 ---
 
 ## Primary Goal
 
-Build a portfolio project capable of demonstrating the skills expected from a Backend Engineer or Data Engineer in Europe.
+Build a portfolio-quality platform capable of demonstrating the skills expected from a Backend Engineer or Data Engineer in Europe, while establishing a credible domain foundation for football analytics.
 
 The project is intentionally developed as a real production-oriented system rather than a tutorial application.
 
@@ -28,6 +30,7 @@ Completed milestones:
 - Sprint 4 — Matches & Results
 - Sprint 5 — Provider boundary, external identities, Competition/Season/Team/Match imports and end-to-end import orchestration
 - Internal/public identifier separation
+- Extensible football domain blueprint
 
 Latest verified suite:
 
@@ -35,7 +38,7 @@ Latest verified suite:
 
 A real local PostgreSQL import has also been verified for Premier League 2025/26: first run `541 created / 0 updated / 0 skipped`, repeated run `0 created / 541 updated / 0 skipped`.
 
-### Current focus
+### Current engineering focus
 
 - Transaction and partial-failure semantics
 - Source priority/fallback behavior
@@ -43,11 +46,13 @@ A real local PostgreSQL import has also been verified for Premier League 2025/26
 - Import observability
 - Operational readiness before background scheduling
 
-The current domain baseline is documented in `docs/DOMAIN_MODEL.md`.
+The current domain foundation and future extension points are documented in `docs/DOMAIN_MODEL.md`.
 
 ---
 
 ## Core Domain Boundary
+
+The currently implemented core remains intentionally small:
 
 ```text
 Competition
@@ -58,6 +63,8 @@ Match
    ├── HomeTeam
    └── AwayTeam
 ```
+
+The documented future direction extends this core with independent Players, historical player/team relationships, match lineups and availability, coaches, formations/tactics, officials and events.
 
 A Match belongs to a specific Season rather than directly to Competition.
 
@@ -146,6 +153,30 @@ It reports persisted PostgreSQL counts for competitions, seasons, teams, matches
 
 ---
 
+## Future Analytics Shape
+
+The long-term model is intentionally layered:
+
+```text
+Master Data
+  Player / Team / Competition / Season / Official
+             ↓
+Match Context
+  Lineup / Availability / Formation / Officials / Coach
+             ↓
+Raw Events
+  Goals / Cards / Substitutions / Other Events
+             ↓
+Derived Statistics
+  Player Match / Team Match / Player Season / Team Season
+             ↓
+Analytics / BI / ML
+```
+
+This is a direction, not a requirement to implement all layers now.
+
+---
+
 ## Verified Real-Data Import
 
 Premier League 2025/26 has been exercised against the configured local PostgreSQL database through the import API:
@@ -217,6 +248,9 @@ The database connection uses the `DefaultConnection` connection string.
 ## Development Verification
 
 ```bash
+git switch main
+git pull --ff-only origin main
+git status
 dotnet clean
 dotnet build
 dotnet test
@@ -239,7 +273,11 @@ The repository intentionally uses a single `main` branch. Do not create feature 
 - Provider isolation
 - External identity mapping
 - Idempotent ingestion before scheduling
-- No premature advanced match/event modelling
+- Small core with explicit extension points
+- Historical data preservation
+- Predicted facts separate from actual facts
+- Match context separate from master data
+- No premature implementation of speculative analytics features
 
 ---
 
@@ -251,5 +289,6 @@ The repository intentionally uses a single `main` branch. Do not create feature 
 4. Add retry/backoff and rate-limiting strategy where appropriate.
 5. Add import observability, health checks and operational diagnostics.
 6. Evaluate background scheduling only after synchronous import remains stable.
+7. Then implement the first real football-domain extension: **Player + Position + historical PlayerTeamAssignment**.
 
-The long-term goal remains a credible portfolio-quality backend demonstrating architecture, REST APIs, relational data modelling, automated testing and safe external data ingestion.
+The long-term goal is a credible football data and analytics platform demonstrating architecture, REST APIs, relational data modelling, automated testing, safe external data ingestion and an extensible football domain.
