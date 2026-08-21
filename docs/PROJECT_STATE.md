@@ -3,7 +3,7 @@
 > **Source of truth for continuing the project across sessions.** Keep this file synchronized after every meaningful milestone.
 
 ## Current Milestone
-**Sprint 5 — Multi-Source External Data & Import Pipeline**
+**Sprint 5.5 — Extensible Football Analytics Domain Blueprint**
 
 ## Verified Status
 - **Tests: 102 passed, 0 failed, 0 skipped, 102 total.**
@@ -94,6 +94,55 @@
 
 **FotMob decision:** FotMob is not a production dependency. It may only be considered later if an authorized/licensed access path is available. The project must not depend on unauthorized scraping or reverse-engineered private endpoints.
 
+## Extensible Football Analytics Domain Direction
+
+The domain blueprint is now explicitly documented in `docs/DOMAIN_MODEL.md` and the roadmap in `docs/ROADMAP.md`.
+
+### Principles now agreed
+- The project is a football analytics data platform, not only a CRUD API.
+- Keep the current core small while preserving extension points.
+- Player is an independent entity and is never deleted because a player leaves football or retires.
+- Player retirement is represented by a nullable `RetiredAt` lifecycle value.
+- Player positions are a capability/profile relationship; actual match position is match context.
+- Player-Team history is represented separately and remains historical.
+- Match lineup stores only the selected starters and substitutes, not the entire roster.
+- Predicted lineup and actual lineup are separate facts.
+- Player availability for a match is a structured concept for injury, suspension, doubtful status, illness, coach decision and similar known facts.
+- Coach is independent and team coaching history is time-bounded.
+- Formation is distinct from both Player position and Team identity; team tactical profile is historical, while match formation can change during a match.
+- Match officials are independent entities with match-specific roles.
+- Match events are first-class future domain data and must remain separate from derived statistics.
+- Historical data is preserved; destructive deletion is not the default for football entities.
+- Provider DTOs remain outside the Domain.
+- Missing source data is not replaced with synthetic records.
+- No speculative big-bang implementation is required; these are extension targets.
+
+### Target domain shape
+```text
+Player
+ ├── PlayerPosition → Position
+ └── PlayerTeamAssignment → Team
+
+Team
+ └── TeamCoachAssignment → Coach
+
+Match
+ └── MatchTeam
+      ├── MatchLineup
+      ├── PredictedMatchLineup
+      ├── PlayerAvailability
+      └── MatchTeamFormation
+
+Match
+ ├── MatchOfficial
+ └── MatchEvent
+
+Team
+ └── TeamTacticalProfile
+```
+
+These concepts are intentionally documented before implementation so future capabilities can be added without forcing a redesign of the current Competition → Season → Match foundation.
+
 ## Current External Source Contract
 ```text
 IFootballDataSource
@@ -165,12 +214,14 @@ dotnet ef database update
 - All project work continues directly on `main`.
 
 ## Current Task
-Move from the verified import foundation toward production-ready ingestion:
-1. Review source priority/fallback behavior.
-2. Define transaction and partial-failure behavior across imports.
-3. Improve provider error classification, retry/backoff and rate limiting.
-4. Add operational observability around import runs.
-5. Only after synchronous import is stable, evaluate background scheduling.
+Complete production-ready ingestion engineering before adding the first Player domain implementation:
+1. Review current import transaction boundaries and failure semantics.
+2. Define source priority/fallback behavior.
+3. Add structured provider error classification and diagnostics.
+4. Evaluate retry/backoff and rate limiting against provider constraints.
+5. Add operational logging/metrics and health checks.
+6. Only after synchronous import is stable, evaluate background scheduling.
+7. Then implement Player + Position + historical PlayerTeamAssignment as the first real football-domain extension.
 
 ## Next Exact Steps
 1. Inspect current import transaction boundaries and failure semantics.
@@ -181,6 +232,7 @@ Move from the verified import foundation toward production-ready ingestion:
 6. Add operational logging/metrics and health checks.
 7. Run `dotnet build` and the complete `dotnet test` suite after each milestone.
 8. Re-verify real-data import and `/imports/status` when import behavior changes.
+9. Start Player + Position + PlayerTeamAssignment only after the ingestion foundation is stable.
 
 ## Important Boundary Decisions
 - `main` is the only source of truth.
@@ -193,6 +245,8 @@ Move from the verified import foundation toward production-ready ingestion:
 - Season synchronization persists only MVP fields required by the current Domain model.
 - New external sources must implement `IFootballDataSource`; Import Services must not reference a concrete provider.
 - FotMob is not a production source unless an authorized/licensed access path is established.
+- Future football-domain extensions must be additive and source-neutral where possible.
+- Historical football data must be preserved unless a specific domain lifecycle explicitly permits deletion.
 
 ## Known Issues / Decisions To Review
 - Teams update endpoint remains `POST /teams/update`; route consistency can be refactored later.
