@@ -5,7 +5,7 @@ public class Season
     public long Id { get; private set; }
     public Guid PublicId { get; private set; }
     public long CompetitionId { get; private set; }
-    public string Name { get; private set; }
+    public string Name { get; private set; } = null!;
     public DateOnly StartDate { get; private set; }
     public DateOnly EndDate { get; private set; }
 
