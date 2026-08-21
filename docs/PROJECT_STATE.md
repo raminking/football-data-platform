@@ -2,6 +2,14 @@
 
 > **Source of truth for continuing the project across sessions.** Keep this file synchronized after every meaningful milestone.
 
+## Git Branch Policy — NON-NEGOTIABLE
+- **`main` is the ONLY branch for this project.**
+- All work must be committed directly to `main`.
+- **DO NOT create feature branches, development branches, temporary branches, or PR branches.**
+- Before starting work, verify the current branch is `main`.
+- If any other branch exists, it must be removed unless the user explicitly instructs otherwise.
+- This rule applies to every future session and every future change.
+
 ## Current Milestone
 **Sprint 5.5 — Extensible Football Analytics Domain Blueprint**
 
@@ -66,152 +74,38 @@
 - Import services resolve an `IFootballDataSource` instead of directly depending on a concrete provider.
 - External identities remain source-scoped.
 
-### Source architecture
-```text
-                    Application
-                         │
-             IFootballDataSourceResolver
-                         │
-                IFootballDataSource
-                         │
-          ┌──────────────┼──────────────┐
-          ▼              ▼              ▼
- football-data.org   Future Official   Other Authorized
-      provider           Source             Source
-          │
-          ▼
- ExternalCompetition / ExternalSeason / ExternalTeam / ExternalMatch
-          │
-          ▼
-       Import Services
-          │
-          ▼
-    ExternalIdentity
-          │
-          ▼
-       Domain + DB
-```
-
-**FotMob decision:** FotMob is not a production dependency. It may only be considered later if an authorized/licensed access path is available. The project must not depend on unauthorized scraping or reverse-engineered private endpoints.
-
 ## Extensible Football Analytics Domain Direction
-
-The domain blueprint is now explicitly documented in `docs/DOMAIN_MODEL.md` and the roadmap in `docs/ROADMAP.md`.
-
-### Principles now agreed
-- The project is a football analytics data platform, not only a CRUD API.
+- The project is football-first: initial scope is men's senior football.
+- Women's football and youth teams such as U21/U18 are future near-term extensions.
+- Other sports are only a future extension point; do not introduce Sport/ClubSport tables or other multi-sport complexity until there is a real requirement.
 - Keep the current core small while preserving extension points.
 - Player is an independent entity and is never deleted because a player leaves football or retires.
 - Player retirement is represented by a nullable `RetiredAt` lifecycle value.
 - Player positions are a capability/profile relationship; actual match position is match context.
 - Player-Team history is represented separately and remains historical.
-- Match lineup stores only the selected starters and substitutes, not the entire roster.
+- A player may have multiple simultaneous PlayerTeamAssignments where football rules/data permit it.
+- AgeCategory belongs to Team context, not Player.
+- Player eligibility is a competition/match rule, not a permanent Player property.
+- Do not introduce Contract until actual contract semantics are required; current PlayerTeamAssignment is sufficient for historical team association.
+- Match lineup stores only selected starters and substitutes, not the entire roster.
 - Predicted lineup and actual lineup are separate facts.
 - Player availability for a match is a structured concept for injury, suspension, doubtful status, illness, coach decision and similar known facts.
-- Coach is independent and team coaching history is time-bounded.
-- Formation is distinct from both Player position and Team identity; team tactical profile is historical, while match formation can change during a match.
-- Match officials are independent entities with match-specific roles.
-- Match events are first-class future domain data and must remain separate from derived statistics.
 - Historical data is preserved; destructive deletion is not the default for football entities.
 - Provider DTOs remain outside the Domain.
 - Missing source data is not replaced with synthetic records.
 - No speculative big-bang implementation is required; these are extension targets.
 
-### Target domain shape
+### Target player/team shape
 ```text
+Club
+ └── Team
+      └── PlayerTeamAssignment → Player
+
 Player
- ├── PlayerPosition → Position
- └── PlayerTeamAssignment → Team
-
-Team
- └── TeamCoachAssignment → Coach
-
-Match
- └── MatchTeam
-      ├── MatchLineup
-      ├── PredictedMatchLineup
-      ├── PlayerAvailability
-      └── MatchTeamFormation
-
-Match
- ├── MatchOfficial
- └── MatchEvent
-
-Team
- └── TeamTacticalProfile
+ └── PlayerPosition → Position
 ```
 
-These concepts are intentionally documented before implementation so future capabilities can be added without forcing a redesign of the current Competition → Season → Match foundation.
-
-## Current External Source Contract
-```text
-IFootballDataSource
-├── SourceKey
-├── GetCompetitionsAsync()
-├── GetSeasonsAsync(competitionCode)
-├── GetTeamsAsync(competitionCode, seasonYear)
-└── GetMatchesAsync(competitionCode, seasonYear)
-```
-
-Provider-specific responses are mapped to provider-neutral external records. Provider DTOs must not leak into Domain or API contracts.
-
-## Import Pipeline
-```text
-sourceKey + competitionCode + seasonYear
-                ↓
-IFootballDataSourceResolver
-                ↓
-IFootballDataSource
-                ↓
-FootballDataImportOrchestrator
-                ↓
-Competition → Season → Teams → Matches
-                ↓
-ExternalIdentity resolution
-                ↓
-Domain entities + PostgreSQL
-```
-
-Imports are idempotent. Existing external identities are resolved and records are updated rather than duplicated.
-
-## Import API
-```text
-POST /imports/{sourceKey}/{competitionCode}/{seasonYear}
-GET  /imports/status
-```
-
-Example:
-```text
-POST /imports/football-data.org/PL/2025
-```
-
-The import response aggregates `Created`, `Updated`, `Skipped`, `Processed` and `Errors` totals.
-
-The status endpoint reports persisted counts for competitions, seasons, teams, matches and external identities.
-
-## Verified Real-Data Import
-The configured local PostgreSQL database has been exercised through the import API with Premier League 2025/26:
-
-```text
-First run:    541 created / 0 updated / 0 skipped
-Second run:     0 created / 541 updated / 0 skipped
-```
-
-This verifies the current match import path is idempotent for that dataset. Actual database row counts remain runtime state and can change independently of Git.
-
-## Database
-- PostgreSQL + Entity Framework Core.
-- Migrations are stored under `src/FootballDataPlatform.Infrastructure/Migrations/`.
-- The API applies pending EF Core migrations at startup when the configured database is reachable.
-- Manual migration command:
-```bash
-dotnet ef database update
-```
-
-## Current Git State
-- `main` is the only source of truth.
-- Do not create feature branches for this project unless explicitly agreed otherwise.
-- All project work continues directly on `main`.
+Future concepts remain additive and are intentionally deferred until justified.
 
 ## Current Task
 Complete production-ready ingestion engineering before adding the first Player domain implementation:
@@ -221,21 +115,20 @@ Complete production-ready ingestion engineering before adding the first Player d
 4. Evaluate retry/backoff and rate limiting against provider constraints.
 5. Add operational logging/metrics and health checks.
 6. Only after synchronous import is stable, evaluate background scheduling.
-7. Then implement Player + Position + historical PlayerTeamAssignment as the first real football-domain extension.
+7. Then implement Club + Team refactor followed by Player + Position + historical PlayerTeamAssignment.
 
 ## Next Exact Steps
-1. Inspect current import transaction boundaries and failure semantics.
+1. Verify the atomic import changes now on `main`.
 2. Add/verify resolver priority and safe fallback tests.
-3. Add import transaction/unit-of-work behavior where justified.
-4. Add structured import error classification and provider diagnostics.
-5. Evaluate rate limiting and retry/backoff against provider constraints.
-6. Add operational logging/metrics and health checks.
-7. Run `dotnet build` and the complete `dotnet test` suite after each milestone.
-8. Re-verify real-data import and `/imports/status` when import behavior changes.
-9. Start Player + Position + PlayerTeamAssignment only after the ingestion foundation is stable.
+3. Add structured import error classification and provider diagnostics.
+4. Evaluate rate limiting and retry/backoff against provider constraints.
+5. Add operational logging/metrics and health checks.
+6. Run `dotnet build` and the complete `dotnet test` suite after each milestone.
+7. Re-verify real-data import and `/imports/status` when import behavior changes.
+8. Start Club + Team refactor, then Player + Position + PlayerTeamAssignment only after the ingestion foundation is stable.
 
 ## Important Boundary Decisions
-- `main` is the only source of truth.
+- `main` is the only source of truth and the only Git branch permitted.
 - Provider DTOs stay in Infrastructure.
 - Application owns source and persistence abstractions; Infrastructure owns implementations.
 - External identifiers must not become domain primary keys.
@@ -244,7 +137,6 @@ Complete production-ready ingestion engineering before adding the first Player d
 - Do not add advanced match/event modelling merely to mirror a provider response.
 - Season synchronization persists only MVP fields required by the current Domain model.
 - New external sources must implement `IFootballDataSource`; Import Services must not reference a concrete provider.
-- FotMob is not a production source unless an authorized/licensed access path is established.
 - Future football-domain extensions must be additive and source-neutral where possible.
 - Historical football data must be preserved unless a specific domain lifecycle explicitly permits deletion.
 
@@ -253,7 +145,7 @@ Complete production-ready ingestion engineering before adding the first Player d
 - Competition-to-Team relationships remain deferred except where required by Match relationships.
 - Optimistic concurrency, soft delete and other advanced production concerns remain deferred until justified.
 - Provider/source rate limiting, retry/backoff and richer error classification remain to be designed.
-- Import transaction/partial-failure behavior needs an explicit production decision.
+- Import transaction/partial-failure behavior needs final verification.
 
 ## Verified Baseline
 ```text
