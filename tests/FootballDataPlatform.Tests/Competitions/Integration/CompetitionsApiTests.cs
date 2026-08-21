@@ -12,7 +12,7 @@ public class CompetitionsApiTests
         await using var factory = new CustomWebApplicationFactory(); using var client = factory.CreateClient();
         var response = await client.PostAsJsonAsync("/competitions", new CreateCompetitionRequest("Premier League", "England", "EPL"));
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
-        var result = await response.Content.ReadFromJsonAsync<IdResponse>(); Assert.NotNull(result); Assert.NotEqual(Guid.Empty, result.Id);
+        var result = await response.Content.ReadFromJsonAsync<IdResponse>(); Assert.NotNull(result); Assert.NotEqual(Guid.Empty, result.PublicId);
     }
 
     [Fact]
@@ -35,9 +35,9 @@ public class CompetitionsApiTests
     {
         await using var factory = new CustomWebApplicationFactory(); using var client = factory.CreateClient(); var request = new CreateCompetitionRequest("La Liga", "Spain", "LL");
         var create = await client.PostAsJsonAsync("/competitions", request); var created = await create.Content.ReadFromJsonAsync<IdResponse>(); Assert.NotNull(created);
-        var response = await client.GetAsync($"/competitions/{created.Id}"); Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var response = await client.GetAsync($"/competitions/{created.PublicId}"); Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var result = await response.Content.ReadFromJsonAsync<CompetitionResponse>(); Assert.NotNull(result);
-        Assert.Equal(created.Id, result.PublicId); Assert.Equal(request.Name, result.Name); Assert.Equal(request.Country, result.Country); Assert.Equal(request.Code, result.Code);
+        Assert.Equal(created.PublicId, result.PublicId); Assert.Equal(request.Name, result.Name); Assert.Equal(request.Country, result.Country); Assert.Equal(request.Code, result.Code);
     }
 
     [Fact]
@@ -51,8 +51,8 @@ public class CompetitionsApiTests
     {
         await using var factory = new CustomWebApplicationFactory(); using var client = factory.CreateClient();
         var create = await client.PostAsJsonAsync("/competitions", new CreateCompetitionRequest("La Liga", "Spain", "LL")); var created = await create.Content.ReadFromJsonAsync<IdResponse>(); Assert.NotNull(created);
-        var response = await client.PutAsJsonAsync($"/competitions/{created.Id}", new CreateCompetitionRequest("La Liga EA", "Spain", "LLA")); Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var updated = await client.GetFromJsonAsync<CompetitionResponse>($"/competitions/{created.Id}"); Assert.NotNull(updated); Assert.Equal("La Liga EA", updated.Name); Assert.Equal("LLA", updated.Code);
+        var response = await client.PutAsJsonAsync($"/competitions/{created.PublicId}", new CreateCompetitionRequest("La Liga EA", "Spain", "LLA")); Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var updated = await client.GetFromJsonAsync<CompetitionResponse>($"/competitions/{created.PublicId}"); Assert.NotNull(updated); Assert.Equal("La Liga EA", updated.Name); Assert.Equal("LLA", updated.Code);
     }
 
     [Fact]
@@ -66,7 +66,7 @@ public class CompetitionsApiTests
     public async Task DeleteCompetition_WithExistingId_ReturnsNoContentAndRemovesCompetition()
     {
         await using var factory = new CustomWebApplicationFactory(); using var client = factory.CreateClient(); var create = await client.PostAsJsonAsync("/competitions", new CreateCompetitionRequest("Bundesliga", "Germany", "BL")); var created = await create.Content.ReadFromJsonAsync<IdResponse>(); Assert.NotNull(created);
-        Assert.Equal(HttpStatusCode.NoContent, (await client.DeleteAsync($"/competitions/{created.Id}")).StatusCode); Assert.Equal(HttpStatusCode.NotFound, await GetStatus(client, $"/competitions/{created.Id}"));
+        Assert.Equal(HttpStatusCode.NoContent, (await client.DeleteAsync($"/competitions/{created.PublicId}")).StatusCode); Assert.Equal(HttpStatusCode.NotFound, await GetStatus(client, $"/competitions/{created.PublicId}"));
     }
 
     [Fact]
@@ -76,5 +76,5 @@ public class CompetitionsApiTests
     }
 
     private static async Task<HttpStatusCode> GetStatus(HttpClient client, string url) => (await client.GetAsync(url)).StatusCode;
-    private record IdResponse(Guid Id);
+    private record IdResponse(Guid PublicId);
 }
