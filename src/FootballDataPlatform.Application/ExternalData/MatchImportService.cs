@@ -21,7 +21,8 @@ public sealed class MatchImportService(
     IExternalIdentityRepository externalIdentityRepository,
     ICompetitionRepository competitionRepository,
     ISeasonRepository seasonRepository,
-    ITeamRepository teamRepository) : IMatchImportService
+    ITeamRepository teamRepository,
+    IUnitOfWork unitOfWork) : IMatchImportService
 {
     private const string CompetitionEntityType = "Competition";
     private const string SeasonEntityType = "Season";
@@ -74,9 +75,13 @@ public sealed class MatchImportService(
                 if (identity is null)
                 {
                     var match = new MatchEntity(season.Id, homeTeam.Id, awayTeam.Id, externalMatch.UtcDate, stage, status, externalMatch.FullTimeHome, externalMatch.FullTimeAway, externalMatch.HalfTimeHome, externalMatch.HalfTimeAway);
-                    await matchRepository.CreateAsync(match, cancellationToken);
-                    await externalIdentityRepository.AddAsync(new ExternalIdentityRecord(source.SourceKey, MatchEntityType, externalMatch.ExternalId.Trim(), match.Id, DateTimeOffset.UtcNow), cancellationToken);
-                    created++; continue;
+                    await unitOfWork.ExecuteInTransactionAsync(async () =>
+                    {
+                        await matchRepository.CreateAsync(match, cancellationToken);
+                        await externalIdentityRepository.AddAsync(new ExternalIdentityRecord(source.SourceKey, MatchEntityType, externalMatch.ExternalId.Trim(), match.Id, DateTimeOffset.UtcNow), cancellationToken);
+                    }, cancellationToken);
+                    created++;
+                    continue;
                 }
 
                 var existingMatch = await matchRepository.GetByIdAsync(identity.InternalEntityId, cancellationToken);
@@ -84,7 +89,9 @@ public sealed class MatchImportService(
                 if (existingMatch.SeasonId != season.Id || existingMatch.HomeTeamId != homeTeam.Id || existingMatch.AwayTeamId != awayTeam.Id) { skipped++; errors.Add($"Match '{externalMatch.ExternalId}' was not updated because its season or team identity changed."); continue; }
 
                 existingMatch.UpdateDetails(externalMatch.UtcDate, stage, status, externalMatch.FullTimeHome, externalMatch.FullTimeAway, externalMatch.HalfTimeHome, externalMatch.HalfTimeAway);
-                await matchRepository.UpdateAsync(existingMatch, cancellationToken);
+                await unitOfWork.ExecuteInTransactionAsync(
+                    () => matchRepository.UpdateAsync(existingMatch, cancellationToken),
+                    cancellationToken);
                 updated++;
             }
             catch (ArgumentException ex) { skipped++; errors.Add($"Match '{externalMatch.ExternalId}' skipped: {ex.Message}"); }
