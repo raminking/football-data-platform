@@ -19,6 +19,7 @@ public static class DependencyInjection
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddDbContext<FootballDataDbContext>(options => options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
+        services.AddScoped<IUnitOfWork, EfUnitOfWork>();
         services.AddScoped<ITeamRepository, TeamRepository>();
         services.AddScoped<ICompetitionRepository, CompetitionRepository>();
         services.AddScoped<ISeasonRepository, SeasonRepository>();
