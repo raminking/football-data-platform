@@ -19,7 +19,7 @@ public sealed class TeamImportServiceTests
             .Setup(x => x.CreateAsync(It.IsAny<Team>(), It.IsAny<CancellationToken>()))
             .Callback<Team, CancellationToken>((team, _) => team.WithId(1))
             .Returns(Task.CompletedTask);
-        var service = new TeamImportService(resolver.Object, teams.Object, identities.Object);
+        var service = new TeamImportService(resolver.Object, teams.Object, identities.Object, CreateUnitOfWork().Object);
         identities.Setup(x => x.FindAsync("football-data.org", "Team", "64", It.IsAny<CancellationToken>())).ReturnsAsync((ExternalIdentityRecord?)null);
         var result = await service.ImportAsync("football-data.org", "PL", 2026);
         Assert.Equal(1, result.Created); Assert.Equal(0, result.Updated); Assert.Equal(0, result.Skipped); Assert.Empty(result.Errors);
@@ -31,7 +31,7 @@ public sealed class TeamImportServiceTests
     public async Task ImportAsync_WhenIdentityExists_UpdatesExistingTeamWithoutCreatingIdentity()
     {
         var team = new Team("Liverpool", "England").WithId(1); var resolver = CreateResolver(); var teams = new Mock<ITeamRepository>(); var identities = new Mock<IExternalIdentityRepository>();
-        var service = new TeamImportService(resolver.Object, teams.Object, identities.Object);
+        var service = new TeamImportService(resolver.Object, teams.Object, identities.Object, CreateUnitOfWork().Object);
         identities.Setup(x => x.FindAsync("football-data.org", "Team", "64", It.IsAny<CancellationToken>())).ReturnsAsync(new ExternalIdentityRecord("football-data.org", "Team", "64", team.Id, DateTimeOffset.UtcNow));
         teams.Setup(x => x.GetByIdAsync(team.Id, It.IsAny<CancellationToken>())).ReturnsAsync(team);
         var result = await service.ImportAsync("football-data.org", "PL", 2026);
@@ -42,7 +42,7 @@ public sealed class TeamImportServiceTests
     [Fact]
     public async Task ImportAsync_WhenIdentityPointsToMissingTeam_SkipsAndReportsError()
     {
-        var resolver = CreateResolver(); var teams = new Mock<ITeamRepository>(); var identities = new Mock<IExternalIdentityRepository>(); var service = new TeamImportService(resolver.Object, teams.Object, identities.Object);
+        var resolver = CreateResolver(); var teams = new Mock<ITeamRepository>(); var identities = new Mock<IExternalIdentityRepository>(); var service = new TeamImportService(resolver.Object, teams.Object, identities.Object, CreateUnitOfWork().Object);
         identities.Setup(x => x.FindAsync("football-data.org", "Team", "64", It.IsAny<CancellationToken>())).ReturnsAsync(new ExternalIdentityRecord("football-data.org", "Team", "64", 1, DateTimeOffset.UtcNow));
         teams.Setup(x => x.GetByIdAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync((Team?)null);
         var result = await service.ImportAsync("football-data.org", "PL", 2026);
@@ -52,10 +52,19 @@ public sealed class TeamImportServiceTests
     [Fact]
     public async Task ImportAsync_WhenProviderTeamIsInvalid_SkipsIt()
     {
-        var resolver = CreateResolver(new ExternalTeam("", "Liverpool FC", "England")); var teams = new Mock<ITeamRepository>(); var identities = new Mock<IExternalIdentityRepository>(); var service = new TeamImportService(resolver.Object, teams.Object, identities.Object);
+        var resolver = CreateResolver(new ExternalTeam("", "Liverpool FC", "England")); var teams = new Mock<ITeamRepository>(); var identities = new Mock<IExternalIdentityRepository>(); var service = new TeamImportService(resolver.Object, teams.Object, identities.Object, CreateUnitOfWork().Object);
         var result = await service.ImportAsync("football-data.org", "PL", 2026);
         Assert.Equal(0, result.Created); Assert.Equal(0, result.Updated); Assert.Equal(1, result.Skipped);
         teams.Verify(x => x.CreateAsync(It.IsAny<Team>(), It.IsAny<CancellationToken>()), Times.Never); identities.Verify(x => x.AddAsync(It.IsAny<ExternalIdentityRecord>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    private static Mock<IUnitOfWork> CreateUnitOfWork()
+    {
+        var unitOfWork = new Mock<IUnitOfWork>();
+        unitOfWork
+            .Setup(x => x.ExecuteInTransactionAsync(It.IsAny<Func<Task>>(), It.IsAny<CancellationToken>()))
+            .Returns<Func<Task>, CancellationToken>((operation, _) => operation());
+        return unitOfWork;
     }
 
     private static Mock<IFootballDataSourceResolver> CreateResolver(params ExternalTeam[] teams)
