@@ -2,28 +2,39 @@
 
 This document defines the current MVP domain model and its intentional boundaries.
 
-## 1. Team
+## 1. Identifier Model
+
+All persisted domain entities use two identifiers with different responsibilities:
+
+```text
+Internal Id  → long / PostgreSQL bigint → database relationships and joins
+PublicId     → Guid / PostgreSQL uuid   → API-facing identifier
+```
+
+Internal database IDs are never exposed as the public API identifier. External provider IDs are stored separately through `ExternalIdentity` and never become domain primary keys.
+
+## 2. Team
 
 A `Team` represents a football club or national team.
 
-The current MVP intentionally keeps Team simple:
-
 ```text
 Team
-├── Id
+├── Id        (internal long)
+├── PublicId  (public Guid)
 ├── Name
 └── Country
 ```
 
-We deliberately do not distinguish Club vs National Team yet. We also do not introduce `ShortName`, `Code`, or a separate `Country` entity until the domain actually requires them.
+We deliberately do not distinguish Club vs National Team yet. We also do not introduce `ShortName`, `Code`, or a separate `Country` entity until the domain requires them.
 
-## 2. Competition
+## 3. Competition
 
 A `Competition` represents a competition independently of a particular season or edition.
 
 ```text
 Competition
-├── Id
+├── Id        (internal long)
+├── PublicId  (public Guid)
 ├── Name
 ├── Country
 └── Code
@@ -33,14 +44,15 @@ Examples include Premier League, FA Cup, Champions League, Europa League, World 
 
 A competition does not represent a particular year.
 
-## 3. Season
+## 4. Season
 
 `Season` represents a specific edition of a competition.
 
 ```text
 Season
-├── Id
-├── CompetitionId
+├── Id           (internal long)
+├── PublicId     (public Guid)
+├── CompetitionId (internal long FK)
 ├── Name
 ├── StartDate
 └── EndDate
@@ -55,14 +67,15 @@ Examples:
 
 The number of participating teams belongs to the specific Season rather than Competition because competition sizes can change between editions.
 
-## 4. Match — v1
+## 5. Match — v1
 
 ```text
 Match
-├── Id
-├── SeasonId
-├── HomeTeamId
-├── AwayTeamId
+├── Id               (internal long)
+├── PublicId         (public Guid)
+├── SeasonId         (internal long FK)
+├── HomeTeamId       (internal long FK)
+├── AwayTeamId       (internal long FK)
 ├── ScheduledAt
 ├── Stage
 ├── Status
@@ -85,9 +98,9 @@ Competition
 
 A Match belongs to a Season, not directly to Competition. The Season identifies the competition edition in which the match takes place.
 
-A Team can therefore participate in matches across multiple seasons and competitions.
+A Team can participate in matches across multiple seasons and competitions.
 
-## 5. Match Stage
+## 6. Match Stage
 
 Stage is intentionally simple in v1. Supported concepts include:
 
@@ -103,7 +116,7 @@ Stage is intentionally simple in v1. Supported concepts include:
 
 A dedicated competition-format/rules subsystem is deliberately deferred.
 
-## 6. Match Status
+## 7. Match Status
 
 The Match lifecycle is:
 
@@ -116,9 +129,7 @@ Cancelled
 Abandoned
 ```
 
-This distinguishes scheduled fixtures from postponed, cancelled, abandoned and completed matches.
-
-## 7. Scores
+## 8. Scores
 
 The MVP stores:
 
@@ -131,22 +142,9 @@ HalfTimeAwayScore
 
 Scores are nullable until meaningful match results exist.
 
-The following are intentionally deferred:
+Extra-time, penalty-shootout score, goals/events, cards, substitutions, possession, shots, corners, lineups, referee, venue and weather remain intentionally deferred.
 
-- Extra-time score
-- Penalty-shootout score
-- Goals/events
-- Cards
-- Substitutions
-- Possession
-- Shots
-- Corners
-- Lineups
-- Referee
-- Venue
-- Weather
-
-## 8. Result
+## 9. Result
 
 Result represents the match outcome:
 
@@ -156,9 +154,7 @@ Draw
 AwayWin
 ```
 
-Result must be consistent with the final scores.
-
-Examples:
+Result must be consistent with the final scores. For example:
 
 ```text
 3 - 1 → HomeWin
@@ -166,11 +162,31 @@ Examples:
 0 - 2 → AwayWin
 ```
 
-An inconsistent state such as `3 - 1 + Draw` must not be accepted by the domain/application model.
-
 Where practical, Result should be derived from final scores rather than treated as an independently mutable value.
 
-## 9. Intentionally Deferred Domain Areas
+## 10. External Identity
+
+External provider identifiers are not domain primary keys.
+
+```text
+ExternalIdentity
+├── Id               (internal long)
+├── Provider/SourceKey
+├── EntityType
+├── ExternalId
+├── InternalEntityId (internal long)
+└── CreatedAtUtc
+```
+
+The database enforces uniqueness for:
+
+```text
+(Provider, EntityType, ExternalId)
+```
+
+This provides source-scoped mapping and supports idempotent imports from multiple authorized sources.
+
+## 11. Intentionally Deferred Domain Areas
 
 The MVP does not model:
 
@@ -186,7 +202,7 @@ The MVP does not model:
 
 These can be introduced later without changing the fundamental `Competition → Season → Match` relationship.
 
-## 10. MVP Boundary
+## 12. MVP Boundary
 
 ```text
 Team
