@@ -4,9 +4,9 @@ public class Competition
 {
     public long Id { get; private set; }
     public Guid PublicId { get; private set; }
-    public string Name { get; private set; }
-    public string Country { get; private set; }
-    public string Code { get; private set; }
+    public string Name { get; private set; } = null!;
+    public string Country { get; private set; } = null!;
+    public string Code { get; private set; } = null!;
 
     public Competition(string name, string country, string code)
     {
