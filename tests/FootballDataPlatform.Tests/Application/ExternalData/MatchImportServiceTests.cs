@@ -137,7 +137,7 @@ public sealed class MatchImportServiceTests
         identities.Setup(x => x.FindAsync("football-data.org", "Match", "match-1", It.IsAny<CancellationToken>()))
             .ReturnsAsync((ExternalIdentityRecord?)null);
 
-        return new MatchFixture(competition, season, home, away, resolver, competitions, seasons, teams, matches, identities);
+        return new MatchFixture(competition, season, home, away, resolver, competitions, seasons, teams, matches, identities, CreateUnitOfWork());
     }
 
     private static IMatchImportService CreateService(MatchFixture fixture) =>
@@ -147,7 +147,17 @@ public sealed class MatchImportServiceTests
             fixture.Identities.Object,
             fixture.CompetitionRepository.Object,
             fixture.SeasonRepository.Object,
-            fixture.TeamRepository.Object);
+            fixture.TeamRepository.Object,
+            fixture.UnitOfWork.Object);
+
+    private static Mock<IUnitOfWork> CreateUnitOfWork()
+    {
+        var unitOfWork = new Mock<IUnitOfWork>();
+        unitOfWork
+            .Setup(x => x.ExecuteInTransactionAsync(It.IsAny<Func<Task>>(), It.IsAny<CancellationToken>()))
+            .Returns<Func<Task>, CancellationToken>((operation, _) => operation());
+        return unitOfWork;
+    }
 
     private sealed record MatchFixture(
         Competition Competition,
@@ -159,5 +169,6 @@ public sealed class MatchImportServiceTests
         Mock<ISeasonRepository> SeasonRepository,
         Mock<ITeamRepository> TeamRepository,
         Mock<IMatchRepository> MatchRepository,
-        Mock<IExternalIdentityRepository> Identities);
+        Mock<IExternalIdentityRepository> Identities,
+        Mock<IUnitOfWork> UnitOfWork);
 }
