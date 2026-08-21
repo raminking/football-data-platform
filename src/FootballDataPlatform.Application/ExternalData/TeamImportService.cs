@@ -17,7 +17,8 @@ public sealed record TeamImportResult(int Created, int Updated, int Skipped, IRe
 public sealed class TeamImportService(
     IFootballDataSourceResolver sourceResolver,
     ITeamRepository teamRepository,
-    IExternalIdentityRepository externalIdentityRepository) : ITeamImportService
+    IExternalIdentityRepository externalIdentityRepository,
+    IUnitOfWork unitOfWork) : ITeamImportService
 {
     private const string EntityType = "Team";
 
@@ -36,13 +37,18 @@ public sealed class TeamImportService(
             if (string.IsNullOrWhiteSpace(externalTeam.ExternalId) || string.IsNullOrWhiteSpace(externalTeam.Name) || string.IsNullOrWhiteSpace(externalTeam.Country))
             { skipped++; errors.Add("Team import skipped because external ID, name, and country are required."); continue; }
 
-            var identity = await externalIdentityRepository.FindAsync(source.SourceKey, EntityType, externalTeam.ExternalId.Trim(), cancellationToken);
+            var externalId = externalTeam.ExternalId.Trim();
+            var identity = await externalIdentityRepository.FindAsync(source.SourceKey, EntityType, externalId, cancellationToken);
             if (identity is null)
             {
                 var team = new Team(externalTeam.Name, externalTeam.Country);
-                await teamRepository.CreateAsync(team, cancellationToken);
-                await externalIdentityRepository.AddAsync(new ExternalIdentityRecord(source.SourceKey, EntityType, externalTeam.ExternalId.Trim(), team.Id, DateTimeOffset.UtcNow), cancellationToken);
-                created++; continue;
+                await unitOfWork.ExecuteInTransactionAsync(async () =>
+                {
+                    await teamRepository.CreateAsync(team, cancellationToken);
+                    await externalIdentityRepository.AddAsync(new ExternalIdentityRecord(source.SourceKey, EntityType, externalId, team.Id, DateTimeOffset.UtcNow), cancellationToken);
+                }, cancellationToken);
+                created++;
+                continue;
             }
 
             var existingTeam = await teamRepository.GetByIdAsync(identity.InternalEntityId, cancellationToken);
@@ -50,7 +56,9 @@ public sealed class TeamImportService(
             { skipped++; errors.Add($"External identity '{identity.ExternalId}' points to missing Team '{identity.InternalEntityId}'."); continue; }
 
             existingTeam.UpdateDetails(externalTeam.Name, externalTeam.Country, existingTeam.LogoUrl, existingTeam.OfficialWebsiteUrl);
-            await teamRepository.UpdateAsync(existingTeam, cancellationToken);
+            await unitOfWork.ExecuteInTransactionAsync(
+                () => teamRepository.UpdateAsync(existingTeam, cancellationToken),
+                cancellationToken);
             updated++;
         }
 
