@@ -6,43 +6,20 @@
 
 ### Vertical Slice Architecture
 
-Instead of organizing code only by technical layers, features are organized around use cases.
+Features are organized around use cases rather than only technical layers. The same approach is used for Teams, Competitions, Seasons, Matches and import workflows.
 
-Example:
-
-Teams
-
-- CreateTeam
-- GetTeam
-- UpdateTeam
-- DeleteTeam
-
-The same approach is used for Competitions, Seasons and Matches.
-
-Benefits
+Benefits:
 
 - Better scalability
 - Better maintainability
 - Easier feature development
 - Reduced coupling
 
----
-
 ### Repository Pattern
 
-The Application layer depends on abstractions rather than Entity Framework directly.
+Application depends on repository abstractions while Infrastructure owns Entity Framework implementations.
 
-Example
-
-Application
-
-`ITeamRepository`, `ICompetitionRepository`, `ISeasonRepository`, `IMatchRepository`
-
-Infrastructure
-
-Concrete repository implementations
-
-Benefits
+Benefits:
 
 - Loose coupling
 - Easier testing
@@ -73,39 +50,17 @@ Competition
         └── AwayTeam
 ```
 
-This allows a team to participate in matches across multiple competitions without coupling Match directly to Competition.
-
 ### Keep Team Simple
 
-The current MVP Team model intentionally remains:
-
-```text
-Team
-├── Id
-├── Name
-└── Country
-```
-
-We avoid adding fields such as `ShortName`, `Code`, or a separate Country entity until a real requirement justifies them. This follows KISS/YAGNI and keeps the current domain aligned with the implementation.
+The MVP intentionally avoids fields and concepts that are not required by current use cases.
 
 ### Match MVP Boundary
 
-The first Match model intentionally contains only the information needed for a useful football-data foundation:
-
-- fixture identity
-- season
-- home/away teams
-- scheduled time
-- stage
-- lifecycle status
-- half-time and full-time scores
-- result
-
-Detailed match events and competition rules are deliberately postponed to avoid premature complexity.
+The first Match model contains fixture identity, season, home/away teams, scheduled time, stage, lifecycle status, half-time/full-time scores and result. Detailed events and competition rules remain deferred.
 
 ### Result Consistency
 
-`Result` is not an independent arbitrary fact. It is derived from the final scores.
+`Result` must agree with final scores:
 
 ```text
 3 - 1 → HomeWin
@@ -113,24 +68,77 @@ Detailed match events and competition rules are deliberately postponed to avoid 
 0 - 2 → AwayWin
 ```
 
-This prevents contradictory states such as `3 - 1 → Draw`.
+This prevents contradictory states.
 
-### Multiple Foreign Keys to One Entity
+---
 
-Match references Team twice through distinct relationships:
+## Identifier Design
+
+A major migration separated internal database identifiers from public API identifiers:
 
 ```text
-Match.HomeTeamId → Team.Id
-Match.AwayTeamId → Team.Id
+Internal Id  → long / bigint → database relationships
+PublicId     → Guid / uuid   → API boundary
 ```
 
-EF Core requires explicit relationship configuration for these two foreign keys. Restricting cascade delete also prevents accidental deletion chains from Team/Season into historical Match records.
+This allows efficient relational keys without exposing database identifiers as the public contract.
+
+External provider IDs are a third category. They are stored in `ExternalIdentity` together with the source and entity type and never become domain primary keys.
+
+---
+
+## External Data Import
+
+Provider-specific DTOs must remain inside Infrastructure. Application consumes provider-neutral records through `IFootballDataSource` and selects sources through `IFootballDataSourceResolver`.
+
+The current pipeline is:
+
+```text
+Source
+  ↓
+IFootballDataSource
+  ↓
+Import Orchestrator
+  ↓
+Competition → Season → Team → Match
+  ↓
+ExternalIdentity
+  ↓
+Domain + PostgreSQL
+```
+
+### Idempotency
+
+External identity uniqueness on:
+
+```text
+(Provider, EntityType, ExternalId)
+```
+
+provides the persistence foundation for idempotent synchronization.
+
+A real Premier League 2025/26 import was verified locally:
+
+```text
+First run:   541 created / 0 updated / 0 skipped
+Second run:    0 created / 541 updated / 0 skipped
+```
+
+This is stronger evidence than integration-test fixtures alone because the full import path was exercised against local PostgreSQL.
+
+### Public IDs at the API Boundary
+
+API integration tests must deserialize the API's `PublicId`, not assume that a response field named `Id` contains the internal database key. This distinction is important when internal and public identifiers are intentionally separated.
+
+### Import Before Scheduling
+
+Import idempotency should be proven before adding recurring background jobs. Scheduling amplifies every weakness in retries, duplicate handling and partial-failure semantics.
 
 ---
 
 ## Entity Framework Core
 
-Learned
+Learned:
 
 - DbContext configuration
 - Entity Configuration
@@ -140,27 +148,27 @@ Learned
 - PostgreSQL integration testing with Testcontainers
 - Explicit configuration for multiple foreign keys from Match to Team
 - Keeping persistence configuration separate from domain invariants
+- Maintaining migration Designer files and model snapshots together
+- Carefully synchronizing schema changes when changing identifier types
 
 ---
 
 ## PostgreSQL
 
-Selected because
+Selected because:
 
 - Excellent performance
-- Open Source
+- Open source
 - Widely used in Europe
 - Excellent EF Core support
+
+Testcontainers provides isolated PostgreSQL infrastructure for integration tests.
 
 ---
 
 ## Dependency Injection
 
-Application registers MediatR.
-
-Infrastructure registers repositories and DbContext.
-
-API composes the application.
+Application registers use cases and MediatR. Infrastructure registers repositories, DbContext and external providers/resolvers. API composes the application.
 
 ---
 
@@ -172,40 +180,33 @@ Carter provides a lightweight endpoint model that fits the project's Vertical Sl
 
 ## Testing
 
-Current strategy
+Current strategy:
 
-- Domain Tests
-- Application Tests
+- Domain tests
+- Application tests
 - API integration tests
 - PostgreSQL integration tests using Testcontainers
+- Provider adapter tests with deterministic HTTP handlers/fixtures
 
-Latest verified milestone result:
+Latest verified result:
 
-**59 passed, 0 failed, 0 skipped**
-
-The complete suite remained green after adding Match.
+**102 passed, 0 failed, 0 skipped, 102 total**
 
 ---
 
-## External Data Import — Next Lesson
+## Current Engineering Lessons
 
-The next milestone introduces external provider data. Provider-specific DTOs should remain outside the domain so that changing providers does not force domain changes.
+The next risks are no longer basic CRUD or import functionality. The important production concerns are:
 
-The intended boundary is:
+- Transaction and partial-failure semantics
+- Source priority and safe fallback
+- Provider error classification
+- Retry/backoff
+- Rate limiting
+- Import observability
+- Health checks and operational diagnostics
 
-```text
-External Provider
-      ↓
-Provider Adapter
-      ↓
-Internal DTO / Mapping
-      ↓
-Domain
-      ↓
-Persistence
-```
-
-Idempotency, validation and retry behavior should be designed before introducing recurring background jobs.
+These should be addressed before background scheduling.
 
 ---
 
