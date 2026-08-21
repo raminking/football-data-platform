@@ -21,6 +21,7 @@ public sealed class SeasonImportServiceIntegrationTests
 
         var competition = new Domain.Competitions.Competition("Premier League", "England", "PL");
         db.Competitions.Add(competition);
+        await db.SaveChangesAsync();
         db.ExternalIdentities.Add(new ExternalIdentity("football-data.org", "Competition", "2021", competition.Id));
         await db.SaveChangesAsync();
 
