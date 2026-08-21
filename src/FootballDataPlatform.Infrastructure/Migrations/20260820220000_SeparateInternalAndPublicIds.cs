@@ -68,17 +68,19 @@ public partial class SeparateInternalAndPublicIds : Migration
         migrationBuilder.DropColumn("Id", "ExternalIdentities");
         migrationBuilder.DropColumn("InternalEntityId", "ExternalIdentities");
 
-        migrationBuilder.RenameColumn("NewId", "Id", "Matches");
-        migrationBuilder.RenameColumn("NewSeasonId", "SeasonId", "Matches");
-        migrationBuilder.RenameColumn("NewHomeTeamId", "HomeTeamId", "Matches");
-        migrationBuilder.RenameColumn("NewAwayTeamId", "AwayTeamId", "Matches");
-        migrationBuilder.RenameColumn("NewId", "Id", "Seasons");
-        migrationBuilder.RenameColumn("NewCompetitionId", "CompetitionId", "Seasons");
-        migrationBuilder.RenameColumn("NewId", "Id", "Competitions");
-        migrationBuilder.RenameColumn("NewId", "Id", "Teams");
-        migrationBuilder.RenameColumn("NewId", "Id", "ExternalIdentities");
-        migrationBuilder.RenameColumn("NewInternalEntityId", "InternalEntityId", "ExternalIdentities");
+        migrationBuilder.RenameColumn("NewId", "Matches", "Id");
+        migrationBuilder.RenameColumn("NewSeasonId", "Matches", "SeasonId");
+        migrationBuilder.RenameColumn("NewHomeTeamId", "Matches", "HomeTeamId");
+        migrationBuilder.RenameColumn("NewAwayTeamId", "Matches", "AwayTeamId");
 
+        migrationBuilder.RenameColumn("NewId", "Seasons", "Id");
+        migrationBuilder.RenameColumn("NewCompetitionId", "Seasons", "CompetitionId");
+
+        migrationBuilder.RenameColumn("NewId", "Competitions", "Id");
+        migrationBuilder.RenameColumn("NewId", "Teams", "Id");
+
+        migrationBuilder.RenameColumn("NewId", "ExternalIdentities", "Id");
+        migrationBuilder.RenameColumn("NewInternalEntityId", "ExternalIdentities", "InternalEntityId");
         migrationBuilder.AddPrimaryKey("PK_Matches", "Matches", "Id");
         migrationBuilder.AddPrimaryKey("PK_Seasons", "Seasons", "Id");
         migrationBuilder.AddPrimaryKey("PK_Competitions", "Competitions", "Id");
@@ -97,11 +99,38 @@ public partial class SeparateInternalAndPublicIds : Migration
         migrationBuilder.CreateIndex("IX_Matches_AwayTeamId", "Matches", "AwayTeamId");
         migrationBuilder.CreateIndex("IX_ExternalIdentities_Provider_EntityType_ExternalId", "ExternalIdentities", new[] { "Provider", "EntityType", "ExternalId" }, unique: true);
 
-        migrationBuilder.AddForeignKey("FK_Seasons_Competitions_CompetitionId", "Seasons", "CompetitionId", "Competitions", "Id", onDelete: ReferentialAction.Cascade);
-        migrationBuilder.AddForeignKey("FK_Matches_Seasons_SeasonId", "Matches", "SeasonId", "Seasons", "Id", onDelete: ReferentialAction.Restrict);
-        migrationBuilder.AddForeignKey("FK_Matches_Teams_HomeTeamId", "Matches", "HomeTeamId", "Teams", "Id", onDelete: ReferentialAction.Restrict);
-        migrationBuilder.AddForeignKey("FK_Matches_Teams_AwayTeamId", "Matches", "AwayTeamId", "Teams", "Id", onDelete: ReferentialAction.Restrict);
-    }
+        migrationBuilder.AddForeignKey(
+            name: "FK_Seasons_Competitions_CompetitionId",
+            table: "Seasons",
+            column: "CompetitionId",
+            principalTable: "Competitions",
+            principalColumn: "Id",
+            onDelete: ReferentialAction.Cascade);
+
+        migrationBuilder.AddForeignKey(
+            name: "FK_Matches_Seasons_SeasonId",
+            table: "Matches",
+            column: "SeasonId",
+            principalTable: "Seasons",
+            principalColumn: "Id",
+            onDelete: ReferentialAction.Restrict);
+
+        migrationBuilder.AddForeignKey(
+            name: "FK_Matches_Teams_HomeTeamId",
+            table: "Matches",
+            column: "HomeTeamId",
+            principalTable: "Teams",
+            principalColumn: "Id",
+            onDelete: ReferentialAction.Restrict);
+
+        migrationBuilder.AddForeignKey(
+            name: "FK_Matches_Teams_AwayTeamId",
+            table: "Matches",
+            column: "AwayTeamId",
+            principalTable: "Teams",
+            principalColumn: "Id",
+            onDelete: ReferentialAction.Restrict);  }
+
 
     protected override void Down(MigrationBuilder migrationBuilder)
     {
