@@ -129,8 +129,8 @@ public partial class SeparateInternalAndPublicIds : Migration
             column: "AwayTeamId",
             principalTable: "Teams",
             principalColumn: "Id",
-            onDelete: ReferentialAction.Restrict);  }
-
+            onDelete: ReferentialAction.Restrict);
+    }
 
     protected override void Down(MigrationBuilder migrationBuilder)
     {
