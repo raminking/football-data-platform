@@ -15,6 +15,10 @@ public sealed class TeamImportServiceTests
     public async Task ImportAsync_WhenIdentityDoesNotExist_CreatesTeamAndIdentity()
     {
         var resolver = CreateResolver(); var teams = new Mock<ITeamRepository>(); var identities = new Mock<IExternalIdentityRepository>();
+        teams
+            .Setup(x => x.CreateAsync(It.IsAny<Team>(), It.IsAny<CancellationToken>()))
+            .Callback<Team, CancellationToken>((team, _) => team.WithId(1))
+            .Returns(Task.CompletedTask);
         var service = new TeamImportService(resolver.Object, teams.Object, identities.Object);
         identities.Setup(x => x.FindAsync("football-data.org", "Team", "64", It.IsAny<CancellationToken>())).ReturnsAsync((ExternalIdentityRecord?)null);
         var result = await service.ImportAsync("football-data.org", "PL", 2026);
