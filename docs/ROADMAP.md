@@ -2,6 +2,8 @@
 
 This document outlines the strategic development plan for the Football Data Platform.
 
+The project is intentionally built as a **football analytics data platform**, not only as a CRUD API for one provider. We implement capabilities incrementally while keeping the domain extensible.
+
 ---
 
 ## Sprint 1 — Foundation ✅
@@ -58,7 +60,10 @@ This document outlines the strategic development plan for the Football Data Plat
 ### Intentionally Deferred
 - Extra-time and penalty-shootout score modelling
 - Goals, cards, substitutions and other match events
-- Lineups, referee, venue and weather
+- Players, lineups and availability
+- Match officials
+- Formation/tactical context
+- Venue and weather
 - Competition format/rules subsystem
 - Groups, season participants and promotion/relegation rules
 
@@ -99,6 +104,41 @@ This document outlines the strategic development plan for the Football Data Plat
 
 ---
 
+## Sprint 5.5 — Extensible Football Domain Blueprint
+**Status:** Architecture decisions documented; implementation intentionally deferred
+
+The platform now has an explicit extension direction for football analytics without requiring a big-bang implementation.
+
+### Domain concepts reserved for incremental implementation
+- [ ] Player as an independent entity
+- [ ] Player retirement (`RetiredAt`) without deleting historical data
+- [ ] Player ↔ Position many-to-many capability model
+- [ ] Historical Player ↔ Team assignment
+- [ ] MatchTeam context
+- [ ] Actual MatchLineup: starters and substitutes only
+- [ ] Predicted lineup kept separate from actual lineup
+- [ ] Player availability for a Match: injury, suspension, doubtful, illness, coach decision, etc.
+- [ ] Independent Coach and historical TeamCoachAssignment
+- [ ] Formation catalog
+- [ ] TeamTacticalProfile with historical validity
+- [ ] Match-level predicted/starting/tactical formations
+- [ ] Match officials and role assignments
+- [ ] First-class MatchEvent model
+- [ ] Later derived match/season statistics
+
+### Architectural principles
+- Keep the current core small; add concepts only when justified by a real use case or source.
+- Do not put historical relationships into current-state columns.
+- Do not merge predicted facts with actual facts.
+- Do not model a player's normal position as their match position.
+- Do not copy a full team roster into every Match.
+- Do not turn every provider field into a domain field.
+- Do not create generic blobs where a real structured domain concept is required.
+- Preserve historical data; retirement and team departure are not deletion.
+- Keep provider-specific DTOs outside Domain/Application contracts.
+
+---
+
 ## Sprint 6 — Production Readiness
 **Status:** Planned
 
@@ -112,3 +152,27 @@ This document outlines the strategic development plan for the Football Data Plat
 - Import retries/rate limiting
 - Operational metrics and diagnostics
 - Background scheduling after synchronous ingestion is stable
+
+---
+
+## Longer-Term Analytics Direction
+
+The following are intentionally future capabilities rather than immediate implementation requirements:
+
+```text
+Master Data
+  Player / Team / Competition / Season / Official
+             ↓
+Match Context
+  Lineup / Availability / Formation / Officials
+             ↓
+Raw Events
+  Goals / Cards / Substitutions / Other Events
+             ↓
+Derived Statistics
+  Player Match / Team Match / Player Season / Team Season
+             ↓
+Analytics / BI / ML
+```
+
+A separate analytical/OLAP layer may be introduced only when scale and use cases justify it. The transactional PostgreSQL model should not be prematurely turned into a data warehouse.
