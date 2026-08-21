@@ -19,40 +19,22 @@ This document outlines the strategic development plan for the Football Data Plat
 ## Sprint 2 — Teams Module ✅
 **Status:** Completed and locally verified
 
-**Completed Features:**
-- [x] Team Entity (Rich Domain Model)
+- [x] Team entity and domain validation
 - [x] Create/Get/Update/Delete Team
-- [x] Validation and uniqueness rules
 - [x] Repository implementation
 - [x] Carter API
 - [x] PostgreSQL/Testcontainers integration tests
-
-**Deferred:**
-- [ ] Optimistic Concurrency Control
-- [ ] Soft Delete vs Hard Delete ADR
-- [ ] Endpoint route consistency
 
 ---
 
 ## Sprint 3 — Competitions & Seasons ✅
 **Status:** Completed and locally verified
 
-### Competition
-- [x] Competition Entity
-- [x] CRUD
-- [x] Validation and uniqueness
-- [x] PostgreSQL persistence
-- [x] Carter API
-- [x] Domain/integration tests
-- [x] EF Core migration
-
-### Season
-- [x] Season Entity
-- [x] Competition → Season relationship
-- [x] Date-range validation
+- [x] Competition CRUD and validation
+- [x] Season entity and Competition relationship
+- [x] Season date-range validation
 - [x] Unique season name within competition
-- [x] CRUD
-- [x] PostgreSQL persistence
+- [x] PostgreSQL persistence and EF migration
 - [x] Carter API
 - [x] Integration coverage
 
@@ -61,98 +43,72 @@ This document outlines the strategic development plan for the Football Data Plat
 ## Sprint 4 — Matches & Results ✅
 **Status:** Completed and locally verified
 
-### Completed
 - [x] Match v1 domain model
-- [x] Season → Match relationship
-- [x] HomeTeam/AwayTeam relationships
-- [x] Match Status lifecycle
-- [x] Match Stage model
+- [x] Season/HomeTeam/AwayTeam relationships
+- [x] Match Status lifecycle and Stage
 - [x] Full-time and half-time scores
 - [x] Result derived from final scores
 - [x] Domain invariants
 - [x] Application CRUD
-- [x] Repository abstraction and PostgreSQL implementation
-- [x] EF Core configuration and migration
-- [x] Carter API
-- [x] Match contracts
-- [x] Domain/application/integration test coverage
-- [x] Full local suite verification
-- [x] Documentation synchronization
-
-### Match v1 Model
-
-```text
-Match
-├── Id
-├── SeasonId
-├── HomeTeamId
-├── AwayTeamId
-├── ScheduledAt
-├── Stage
-├── Status
-├── HomeScore
-├── AwayScore
-├── HalfTimeHomeScore
-├── HalfTimeAwayScore
-└── Result
-```
-
-### Historical Verification
-The Sprint 4 baseline was **59 passed, 0 failed, 0 skipped**. The current repository baseline is higher because Sprint 5 provider work has been added.
+- [x] Repository + PostgreSQL implementation
+- [x] EF Core configuration/migration
+- [x] Carter API and contracts
+- [x] Full local test coverage
 
 ### Intentionally Deferred
 - Extra-time and penalty-shootout score modelling
 - Goals, cards, substitutions and other match events
 - Lineups, referee, venue and weather
 - Competition format/rules subsystem
-- Groups and season participants
-- Promotion/relegation and qualification rules
+- Groups, season participants and promotion/relegation rules
 
 ---
 
-## Sprint 5 — External Data Import 🚧
-**Status:** In progress
-
-**Goal:** Introduce a provider-independent ingestion boundary for real football data and build a safe, idempotent synchronization pipeline.
+## Sprint 5 — Multi-Source External Data & Import
+**Status:** Core pipeline completed and locally verified
 
 ### Completed
-- [x] Select and document first external football-data provider: `football-data.org`
-- [x] Define provider-independent `IFootballDataProvider` abstraction
-- [x] Keep provider DTOs separate from internal domain models
-- [x] Implement `FootballDataOrgProvider`
-- [x] Register provider options and typed HTTP client
-- [x] Map provider competitions, teams and matches into provider-neutral external records
-- [x] Add deterministic provider adapter tests with fake HTTP handlers and fixtures
-- [x] Introduce persistent external identity for provider/entity/external-id mapping
-- [x] Add uniqueness for provider + entity type + external identifier
-- [x] Add external identity repository abstraction and PostgreSQL implementation
-- [x] Verify current suite: **76 passed, 0 failed, 0 skipped**
+- [x] `football-data.org` source adapter
+- [x] Provider-neutral `IFootballDataSource` abstraction
+- [x] `IFootballDataSourceResolver`
+- [x] Provider DTO isolation in Infrastructure
+- [x] Provider-neutral external records
+- [x] Persistent `ExternalIdentity` mapping
+- [x] Unique `(Provider, EntityType, ExternalId)` constraint
+- [x] Competition import
+- [x] Season import
+- [x] Team import
+- [x] Match import
+- [x] End-to-end `FootballDataImportOrchestrator`
+- [x] Import API: `POST /imports/{sourceKey}/{competitionCode}/{seasonYear}`
+- [x] Import status API: `GET /imports/status`
+- [x] Idempotent repeated imports
+- [x] Internal `long` IDs separated from public `Guid` IDs
+- [x] Full suite: **102 passed, 0 failed, 0 skipped**
+- [x] Real PostgreSQL verification for Premier League 2025/26: `541 created` first run, `541 updated` second run
 
-### Current Focus
-- [ ] Implement Team import/mapping application service
-- [ ] Implement idempotent Team upsert using ExternalIdentity
-- [ ] Add unit and integration coverage for repeated imports
+### Remaining Engineering Work
+- [ ] Source priority and safe fallback semantics
+- [ ] Transaction and partial-failure behavior
+- [ ] Provider error classification and diagnostics
+- [ ] Retry/backoff and rate limiting
+- [ ] Import observability
 
-### Next
-- [ ] Extend import to Competition and Season
-- [ ] Extend import to Match
-- [ ] Define validation and partial-failure handling
-- [ ] Define retry/backoff and provider error classification
-- [ ] Add end-to-end import integration coverage
-- [ ] Evaluate background scheduling only after synchronous import is stable
-
-### Engineering Focus
-The import layer must not leak provider-specific models into the domain. Provider changes should be isolated behind an adapter boundary. External identifiers must not become domain primary keys. The external identity uniqueness constraint provides the persistence-level foundation for idempotent synchronization.
+### Source Decision
+`football-data.org` is the current authorized source. FotMob is not a production dependency and may only be considered if an authorized/licensed access path becomes available.
 
 ---
 
 ## Sprint 6 — Production Readiness
 **Status:** Planned
 
-- Authentication (JWT) & Authorization
-- Structured Logging (Serilog)
+- Authentication & Authorization
+- Structured Logging
 - Docker Containerization
 - Health Checks
 - Advanced CI/CD
 - Security Scans
 - Performance Tests
+- Import retries/rate limiting
+- Operational metrics and diagnostics
+- Background scheduling after synchronous ingestion is stable
