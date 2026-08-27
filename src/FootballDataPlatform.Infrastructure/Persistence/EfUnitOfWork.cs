@@ -9,6 +9,12 @@ public sealed class EfUnitOfWork(FootballDataDbContext dbContext) : IUnitOfWork
         Func<Task> operation,
         CancellationToken cancellationToken = default)
     {
+        if (dbContext.Database.CurrentTransaction is not null)
+        {
+            await operation();
+            return;
+        }
+
         await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
 
         try
