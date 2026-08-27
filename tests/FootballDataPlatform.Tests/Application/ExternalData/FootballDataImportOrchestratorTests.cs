@@ -8,13 +8,14 @@ namespace FootballDataPlatform.Tests.Application.ExternalData;
 public sealed class FootballDataImportOrchestratorTests
 {
     [Fact]
-    public async Task ImportCompetitionAsync_ExecutesImportServicesInOrder()
+    public async Task ImportCompetitionAsync_ExecutesImportServicesInOrderInsideOneTransaction()
     {
         var source = "football-data.org";
         var competition = new Mock<ICompetitionImportService>();
         var season = new Mock<ISeasonImportService>();
         var teams = new Mock<ITeamImportService>();
         var matches = new Mock<IMatchImportService>();
+        var unitOfWork = new Mock<IUnitOfWork>();
 
         competition.Setup(x => x.ImportAsync(source, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new CompetitionImportResult(1, 0, 0, []));
@@ -25,21 +26,65 @@ public sealed class FootballDataImportOrchestratorTests
         matches.Setup(x => x.ImportAsync(source, "PL", 2025, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new MatchImportResult(380, 0, 0, []));
 
+        unitOfWork.Setup(x => x.ExecuteInTransactionAsync(
+                It.IsAny<Func<Task>>(),
+                It.IsAny<CancellationToken>()))
+            .Returns<Func<Task>, CancellationToken>((operation, _) => operation());
+
         var orchestrator = new FootballDataImportOrchestrator(
             competition.Object,
             season.Object,
             teams.Object,
-            matches.Object);
+            matches.Object,
+            unitOfWork.Object);
 
         var result = await orchestrator.ImportCompetitionAsync(source, "PL", 2025);
 
         Assert.Equal(402, result.Created);
         Assert.Equal(402, result.Processed);
         Assert.Empty(result.Errors);
+        unitOfWork.Verify(x => x.ExecuteInTransactionAsync(
+            It.IsAny<Func<Task>>(),
+            It.IsAny<CancellationToken>()), Times.Once);
         competition.VerifyAll();
         season.VerifyAll();
         teams.VerifyAll();
         matches.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ImportCompetitionAsync_WhenStageFails_PropagatesFailureAndDoesNotContinue()
+    {
+        var competition = new Mock<ICompetitionImportService>();
+        var season = new Mock<ISeasonImportService>();
+        var teams = new Mock<ITeamImportService>();
+        var matches = new Mock<IMatchImportService>();
+        var unitOfWork = new Mock<IUnitOfWork>();
+
+        competition.Setup(x => x.ImportAsync("football-data.org", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new CompetitionImportResult(1, 0, 0, []));
+        season.Setup(x => x.ImportAsync("football-data.org", "PL", It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("Simulated import failure."));
+        unitOfWork.Setup(x => x.ExecuteInTransactionAsync(
+                It.IsAny<Func<Task>>(),
+                It.IsAny<CancellationToken>()))
+            .Returns<Func<Task>, CancellationToken>((operation, _) => operation());
+
+        var orchestrator = new FootballDataImportOrchestrator(
+            competition.Object,
+            season.Object,
+            teams.Object,
+            matches.Object,
+            unitOfWork.Object);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            orchestrator.ImportCompetitionAsync("football-data.org", "PL", 2025));
+
+        teams.Verify(x => x.ImportAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
+        matches.Verify(x => x.ImportAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
+        unitOfWork.Verify(x => x.ExecuteInTransactionAsync(
+            It.IsAny<Func<Task>>(),
+            It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -50,6 +95,7 @@ public sealed class FootballDataImportOrchestratorTests
         var season = new Mock<ISeasonImportService>();
         var teams = new Mock<ITeamImportService>();
         var matches = new Mock<IMatchImportService>();
+        var unitOfWork = new Mock<IUnitOfWork>();
 
         competition.Setup(x => x.ImportAsync("football-data.org", It.IsAny<CancellationToken>()))
             .ReturnsAsync(() =>
@@ -57,12 +103,17 @@ public sealed class FootballDataImportOrchestratorTests
                 cts.Cancel();
                 return new CompetitionImportResult(1, 0, 0, []);
             });
+        unitOfWork.Setup(x => x.ExecuteInTransactionAsync(
+                It.IsAny<Func<Task>>(),
+                It.IsAny<CancellationToken>()))
+            .Returns<Func<Task>, CancellationToken>((operation, _) => operation());
 
         var orchestrator = new FootballDataImportOrchestrator(
             competition.Object,
             season.Object,
             teams.Object,
-            matches.Object);
+            matches.Object,
+            unitOfWork.Object);
 
         await Assert.ThrowsAsync<OperationCanceledException>(() =>
             orchestrator.ImportCompetitionAsync("football-data.org", "PL", 2025, cts.Token));
