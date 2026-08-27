@@ -1,3 +1,4 @@
+using System.Net;
 using System.Text.Json;
 using FootballDataPlatform.Application.Abstractions.ExternalData;
 using FootballDataPlatform.Infrastructure.ExternalData.FootballDataOrg.Models;
@@ -25,7 +26,7 @@ public sealed class FootballDataOrgProvider : IFootballDataSource
 
     public async Task<IReadOnlyCollection<ExternalCompetition>> GetCompetitionsAsync(CancellationToken cancellationToken = default)
     {
-        var response = await GetAsync<CompetitionResponse>("v4/competitions", cancellationToken);
+        var response = await GetAsync<CompetitionResponse>("v4/competitions", nameof(GetCompetitionsAsync), cancellationToken);
         return response.Competitions
             .Where(x => x.Id > 0 && !string.IsNullOrWhiteSpace(x.Name) && !string.IsNullOrWhiteSpace(x.Code))
             .Select(x => new ExternalCompetition(x.Id.ToString(), x.Name, x.Code!, x.Area?.Name))
@@ -36,7 +37,7 @@ public sealed class FootballDataOrgProvider : IFootballDataSource
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(competitionCode);
         var path = $"v4/competitions/{Uri.EscapeDataString(competitionCode)}";
-        var response = await GetAsync<CompetitionDetailDto>(path, cancellationToken);
+        var response = await GetAsync<CompetitionDetailDto>(path, nameof(GetSeasonsAsync), cancellationToken);
         return response.Seasons
             .Where(x => x.Id > 0 && x.StartDate != default && x.EndDate != default && x.EndDate >= x.StartDate)
             .Select(x => new ExternalSeason(x.Id.ToString(), response.Id.ToString(), BuildSeasonName(x.StartDate, x.EndDate), x.StartDate, x.EndDate))
@@ -48,7 +49,7 @@ public sealed class FootballDataOrgProvider : IFootballDataSource
         ArgumentException.ThrowIfNullOrWhiteSpace(competitionCode);
         if (seasonYear <= 0) throw new ArgumentOutOfRangeException(nameof(seasonYear), "Season year must be greater than zero.");
         var path = $"v4/competitions/{Uri.EscapeDataString(competitionCode)}/teams?season={seasonYear}";
-        var response = await GetAsync<TeamResponse>(path, cancellationToken);
+        var response = await GetAsync<TeamResponse>(path, nameof(GetTeamsAsync), cancellationToken);
         return response.Teams.Where(x => x.Id > 0 && !string.IsNullOrWhiteSpace(x.Name))
             .Select(x => new ExternalTeam(x.Id.ToString(), x.Name, x.Area?.Name)).ToArray();
     }
@@ -58,21 +59,72 @@ public sealed class FootballDataOrgProvider : IFootballDataSource
         ArgumentException.ThrowIfNullOrWhiteSpace(competitionCode);
         if (seasonYear <= 0) throw new ArgumentOutOfRangeException(nameof(seasonYear), "Season year must be greater than zero.");
         var path = $"v4/competitions/{Uri.EscapeDataString(competitionCode)}/matches?season={seasonYear}";
-        var response = await GetAsync<MatchResponse>(path, cancellationToken);
+        var response = await GetAsync<MatchResponse>(path, nameof(GetMatchesAsync), cancellationToken);
         return response.Matches.Where(IsValidMatch).Select(MapMatch).ToArray();
     }
 
-    private async Task<T> GetAsync<T>(string relativePath, CancellationToken cancellationToken)
+    private async Task<T> GetAsync<T>(string relativePath, string operation, CancellationToken cancellationToken)
     {
-        using var response = await _httpClient.GetAsync(relativePath, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
-        if (!response.IsSuccessStatusCode)
+        try
         {
-            var body = await response.Content.ReadAsStringAsync(cancellationToken);
-            throw new HttpRequestException($"football-data.org request failed with status {(int)response.StatusCode} ({response.ReasonPhrase}). Response: {body}");
+            using var response = await _httpClient.GetAsync(relativePath, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                var statusCode = (int)response.StatusCode;
+                var category = response.StatusCode switch
+                {
+                    HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden => ExternalDataErrorCategory.Authentication,
+                    HttpStatusCode.TooManyRequests => ExternalDataErrorCategory.RateLimited,
+                    _ when statusCode >= 500 => ExternalDataErrorCategory.ServerError,
+                    _ => ExternalDataErrorCategory.InvalidResponse
+                };
+
+                throw new ExternalDataException(
+                    category,
+                    SourceKey,
+                    operation,
+                    $"football-data.org request failed with status {statusCode} ({response.ReasonPhrase}).",
+                    statusCode);
+            }
+
+            await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
+            return await JsonSerializer.DeserializeAsync<T>(stream, JsonOptions, cancellationToken)
+                ?? throw new ExternalDataException(
+                    ExternalDataErrorCategory.InvalidResponse,
+                    SourceKey,
+                    operation,
+                    "football-data.org returned an empty response.");
         }
-        await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
-        return await JsonSerializer.DeserializeAsync<T>(stream, JsonOptions, cancellationToken)
-            ?? throw new InvalidOperationException($"football-data.org returned an empty response for '{relativePath}'.");
+        catch (ExternalDataException)
+        {
+            throw;
+        }
+        catch (TaskCanceledException) when (!cancellationToken.IsCancellationRequested)
+        {
+            throw new ExternalDataException(
+                ExternalDataErrorCategory.Timeout,
+                SourceKey,
+                operation,
+                "The football-data.org request timed out.");
+        }
+        catch (HttpRequestException ex)
+        {
+            throw new ExternalDataException(
+                ExternalDataErrorCategory.Network,
+                SourceKey,
+                operation,
+                "The request to football-data.org failed.",
+                innerException: ex);
+        }
+        catch (JsonException ex)
+        {
+            throw new ExternalDataException(
+                ExternalDataErrorCategory.InvalidResponse,
+                SourceKey,
+                operation,
+                "football-data.org returned an invalid response.",
+                innerException: ex);
+        }
     }
 
     private static string BuildSeasonName(DateOnly startDate, DateOnly endDate) =>
