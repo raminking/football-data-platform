@@ -112,7 +112,9 @@ public sealed class FootballDataOrgProviderTests
         using var cts = new CancellationTokenSource();
         cts.Cancel();
         var provider = CreateProvider(new FakeHttpMessageHandler(new OperationCanceledException()));
-        await Assert.ThrowsAsync<OperationCanceledException>(() => provider.GetTeamsAsync("PL", 2025, cts.Token));
+
+        var exception = await Assert.ThrowsAnyAsync<OperationCanceledException>(() => provider.GetTeamsAsync("PL", 2025, cts.Token));
+        Assert.IsType<TaskCanceledException>(exception);
     }
 
     [Fact]
