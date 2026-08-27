@@ -1,5 +1,7 @@
 namespace FootballDataPlatform.Application.ExternalData;
 
+using FootballDataPlatform.Application.Abstractions.Persistence;
+
 public interface IFootballDataImportOrchestrator
 {
     Task<FootballDataImportResult> ImportCompetitionAsync(
@@ -32,7 +34,8 @@ public sealed class FootballDataImportOrchestrator(
     ICompetitionImportService competitionImportService,
     ISeasonImportService seasonImportService,
     ITeamImportService teamImportService,
-    IMatchImportService matchImportService) : IFootballDataImportOrchestrator
+    IMatchImportService matchImportService,
+    IUnitOfWork unitOfWork) : IFootballDataImportOrchestrator
 {
     public async Task<FootballDataImportResult> ImportCompetitionAsync(
         string sourceKey,
@@ -44,33 +47,40 @@ public sealed class FootballDataImportOrchestrator(
         ArgumentException.ThrowIfNullOrWhiteSpace(competitionCode);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(seasonYear);
 
-        var competition = await competitionImportService.ImportAsync(
-            sourceKey,
-            cancellationToken);
+        FootballDataImportResult? result = null;
 
-        cancellationToken.ThrowIfCancellationRequested();
+        await unitOfWork.ExecuteInTransactionAsync(async () =>
+        {
+            var competition = await competitionImportService.ImportAsync(
+                sourceKey,
+                cancellationToken);
 
-        var season = await seasonImportService.ImportAsync(
-            sourceKey,
-            competitionCode,
-            cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
 
-        cancellationToken.ThrowIfCancellationRequested();
+            var season = await seasonImportService.ImportAsync(
+                sourceKey,
+                competitionCode,
+                cancellationToken);
 
-        var teams = await teamImportService.ImportAsync(
-            sourceKey,
-            competitionCode,
-            seasonYear,
-            cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
 
-        cancellationToken.ThrowIfCancellationRequested();
+            var teams = await teamImportService.ImportAsync(
+                sourceKey,
+                competitionCode,
+                seasonYear,
+                cancellationToken);
 
-        var matches = await matchImportService.ImportAsync(
-            sourceKey,
-            competitionCode,
-            seasonYear,
-            cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
 
-        return new FootballDataImportResult(competition, season, teams, matches);
+            var matches = await matchImportService.ImportAsync(
+                sourceKey,
+                competitionCode,
+                seasonYear,
+                cancellationToken);
+
+            result = new FootballDataImportResult(competition, season, teams, matches);
+        }, cancellationToken);
+
+        return result!;
     }
 }
