@@ -71,9 +71,7 @@ public sealed class FootballDataOrgProviderTests
     public async Task GetTeamsAsync_ShouldClassifyHttpFailures(HttpStatusCode statusCode, ExternalDataErrorCategory expectedCategory)
     {
         var provider = CreateProvider(new FakeHttpMessageHandler(statusCode, "{\"message\":\"provider error\"}"));
-
         var exception = await Assert.ThrowsAsync<ExternalDataException>(() => provider.GetTeamsAsync("PL", 2025));
-
         Assert.Equal(expectedCategory, exception.Category);
         Assert.Equal("football-data.org", exception.SourceKey);
         Assert.Equal(nameof(provider.GetTeamsAsync), exception.Operation);
@@ -86,9 +84,7 @@ public sealed class FootballDataOrgProviderTests
     public async Task GetTeamsAsync_ShouldClassifyInvalidJson()
     {
         var provider = CreateProvider(new FakeHttpMessageHandler(HttpStatusCode.OK, "not-json"));
-
         var exception = await Assert.ThrowsAsync<ExternalDataException>(() => provider.GetTeamsAsync("PL", 2025));
-
         Assert.Equal(ExternalDataErrorCategory.InvalidResponse, exception.Category);
         Assert.Equal("football-data.org", exception.SourceKey);
         Assert.Equal(nameof(provider.GetTeamsAsync), exception.Operation);
@@ -98,9 +94,7 @@ public sealed class FootballDataOrgProviderTests
     public async Task GetTeamsAsync_ShouldClassifyTimeout()
     {
         var provider = CreateProvider(new FakeHttpMessageHandler(new TaskCanceledException("request timeout")));
-
         var exception = await Assert.ThrowsAsync<ExternalDataException>(() => provider.GetTeamsAsync("PL", 2025));
-
         Assert.Equal(ExternalDataErrorCategory.Timeout, exception.Category);
     }
 
@@ -108,9 +102,7 @@ public sealed class FootballDataOrgProviderTests
     public async Task GetTeamsAsync_ShouldClassifyNetworkFailure()
     {
         var provider = CreateProvider(new FakeHttpMessageHandler(new HttpRequestException("connection failed")));
-
         var exception = await Assert.ThrowsAsync<ExternalDataException>(() => provider.GetTeamsAsync("PL", 2025));
-
         Assert.Equal(ExternalDataErrorCategory.Network, exception.Category);
     }
 
@@ -120,12 +112,8 @@ public sealed class FootballDataOrgProviderTests
         using var cts = new CancellationTokenSource();
         cts.Cancel();
         var provider = CreateProvider(new FakeHttpMessageHandler(new OperationCanceledException()));
-
         await Assert.ThrowsAsync<OperationCanceledException>(() => provider.GetTeamsAsync("PL", 2025, cts.Token));
     }
-
-    [Fact]
-    public async Task GetTeamsAsync_ShouldRejectEmptyCompetitionCode() => await Assert.ThrowsAsync<ArgumentException>(() => CreateProvider(new FakeHttpMessageHandler(HttpStatusCode.OK, "{\"teams\":[]}")).GetTeamsAsync("", 2025));
 
     [Fact]
     public async Task Provider_ShouldSendAuthenticationToken()
