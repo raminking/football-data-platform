@@ -32,12 +32,22 @@ public static class DependencyInjection
             .Validate(options => Uri.TryCreate(options.BaseUrl, UriKind.Absolute, out _), "FootballDataOrg:BaseUrl must be a valid absolute URI.")
             .ValidateOnStart();
 
+        services.AddOptions<ExternalDataRetryOptions>()
+            .Bind(configuration.GetSection(ExternalDataRetryOptions.SectionName))
+            .Validate(options => options.MaxRetries >= 0, "ExternalData:Retry:MaxRetries must not be negative.")
+            .Validate(options => options.BaseDelaySeconds >= 0, "ExternalData:Retry:BaseDelaySeconds must not be negative.")
+            .Validate(options => options.MaxDelaySeconds >= options.BaseDelaySeconds, "ExternalData:Retry:MaxDelaySeconds must be greater than or equal to BaseDelaySeconds.")
+            .Validate(options => options.JitterRatio >= 0 && options.JitterRatio <= 1, "ExternalData:Retry:JitterRatio must be between 0 and 1.")
+            .ValidateOnStart();
+
+        services.AddTransient<ExternalDataRetryHandler>();
         services.AddHttpClient<FootballDataOrgProvider>((serviceProvider, client) =>
         {
             var options = serviceProvider.GetRequiredService<IOptions<FootballDataOrgOptions>>().Value;
             client.BaseAddress = new Uri(options.BaseUrl);
             client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
-        });
+        })
+        .AddHttpMessageHandler<ExternalDataRetryHandler>();
 
         services.AddScoped<IFootballDataSource>(serviceProvider =>
             serviceProvider.GetRequiredService<FootballDataOrgProvider>());
