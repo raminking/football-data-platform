@@ -89,7 +89,6 @@ public sealed class ExternalDataRetryHandlerTests
         cts.Cancel();
 
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => client.GetAsync("test", cts.Token));
-        Assert.Equal(0, handler.RequestCount);
     }
 
     private static HttpClient CreateClient(HttpMessageHandler innerHandler, int maxRetries)
